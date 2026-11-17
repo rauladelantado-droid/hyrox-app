@@ -1,0 +1,1842 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>HYROX PRO COACH — Rumbo a Málaga 2027</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+<script>
+tailwind.config = {
+darkMode: 'class',
+theme: {
+extend: {
+fontFamily: {
+sans: ['Inter', 'system-ui', 'sans-serif'],
+mono: ['JetBrains Mono', 'monospace'],
+},
+colors: {
+bg: '#090a0f',
+surface: '#11131a',
+card: '#161922',
+border: '#242938',
+strava: '#fc4c02',
+lime: '#a3e635',
+cyan: '#38bdf8',
+}
+}
+}
+}
+</script>
+<style>
+body { background-color: #090a0f; color: #f4f4f5; -webkit-tap-highlight-color: transparent; }
+.glass { background: rgba(22, 25, 34, 0.85); backdrop-filter: blur(12px); }
+.tabular-nums { font-variant-numeric: tabular-nums; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #090a0f; }
+::-webkit-scrollbar-thumb { background: #272c3d; border-radius: 999px; }
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"] { -moz-appearance: textfield; }
+</style>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
+<link rel="apple-touch-icon" href="icon.png">
+</head>
+<body class="font-sans antialiased min-h-screen flex flex-col md:flex-row selection:bg-lime/30 selection:text-lime">
+
+<!-- DESKTOP SIDEBAR -->
+<aside class="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-surface border-r border-border z-30">
+<div class="p-5 border-b border-border">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-lime to-emerald-500 flex items-center justify-center text-black font-extrabold text-lg shadow-lg shadow-lime/15">
+HX
+</div>
+<div>
+<h1 class="font-bold text-base tracking-tight text-white">HYROX <span class="text-lime">COACH</span></h1>
+<p class="text-[11px] text-zinc-400 font-mono">MÁLAGA 2027 · SUB-1:40</p>
+</div>
+</div>
+</div>
+
+<nav class="flex-1 p-3 space-y-1.5" id="desktop-nav">
+<button onclick="switchTab('hoy')" data-tab="hoy" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all">
+<i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard (Hoy)
+</button>
+<button onclick="switchTab('logger')" data-tab="logger" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all">
+<i data-lucide="dumbbell" class="w-4 h-4"></i> Registrar Entreno
+</button>
+<button onclick="switchTab('plan')" data-tab="plan" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all">
+<i data-lucide="calendar-days" class="w-4 h-4"></i> Planificación 22 Sem.
+</button>
+<button onclick="switchTab('progreso')" data-tab="progreso" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all">
+<i data-lucide="trending-up" class="w-4 h-4"></i> Historial y Progreso
+</button>
+</nav>
+
+<div class="p-4 border-t border-border space-y-3">
+<div class="bg-card rounded-xl p-3 border border-border">
+<div class="flex justify-between items-center text-xs text-zinc-400 mb-1">
+<span>Cuenta atrás Málaga</span>
+<span class="text-lime font-mono font-bold" id="sidebar-days-left">-- d</span>
+</div>
+<div class="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+<div id="sidebar-progress-bar" class="bg-gradient-to-r from-strava to-lime h-full rounded-full" style="width: 5%"></div>
+</div>
+<div class="mt-2 flex items-center justify-between text-[11px] text-zinc-400">
+<span>186 cm · 78 kg</span>
+<span class="font-mono text-zinc-300">VDOT 35.8 → 40.5</span>
+</div>
+</div>
+</div>
+</aside>
+
+<!-- MOBILE HEADER -->
+<header class="md:hidden sticky top-0 z-30 glass border-b border-border px-4 py-3 flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-gradient-to-br from-lime to-emerald-500 flex items-center justify-center text-black font-extrabold text-sm">
+HX
+</div>
+<div>
+<div class="font-bold text-sm leading-tight">HYROX <span class="text-lime">MÁLAGA</span></div>
+<div class="text-[10px] text-zinc-400 font-mono" id="mobile-header-sub">Sub-1:40 · Terrassa</div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span id="mobile-days-badge" class="text-xs font-mono px-2.5 py-1 rounded-full bg-card border border-border text-lime">-- días</span>
+</div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main class="flex-1 md:pl-64 pb-24 md:pb-10">
+<div class="max-w-5xl mx-auto p-4 md:p-8">
+
+<!-- ==================== TAB 1: HOY (DASHBOARD) ==================== -->
+<section id="tab-hoy" class="tab-panel space-y-6">
+<!-- Top Context Banner -->
+<div class="bg-gradient-to-br from-card via-card to-[#1a2218] border border-border rounded-2xl p-5 md:p-6 relative overflow-hidden">
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+<div>
+<div class="flex flex-wrap items-center gap-2 mb-2">
+<span id="today-week-badge" class="text-[11px] font-mono font-bold uppercase px-2.5 py-0.5 rounded-full bg-lime/15 text-lime border border-lime/30">Semana --</span>
+<span id="today-block-badge" class="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700">Bloque --</span>
+<span id="today-shift-badge" class="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-cyan/10 text-cyan border border-cyan/25">Turno --</span>
+</div>
+<h2 class="text-xl md:text-2xl font-extrabold text-white tracking-tight" id="today-date-title">Cargando fecha...</h2>
+<p class="text-sm text-zinc-400 mt-1" id="today-coach-note">Foco del día</p>
+</div>
+<div class="flex flex-wrap items-center gap-2.5">
+<button onclick="openTodayInLogger()" class="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-strava hover:bg-strava/90 text-white font-bold text-sm shadow-lg shadow-strava/25 transition active:scale-[0.98]">
+<i data-lucide="play-circle" class="w-4 h-4"></i>
+Registrar Entrenamiento de Hoy
+</button>
+</div>
+</div>
+
+<!-- Quick Shift / Day Override Bar -->
+<div class="mt-4 pt-4 border-t border-border/70 flex flex-wrap items-center justify-between gap-3 text-xs">
+<div class="flex flex-wrap items-center gap-2">
+<label class="text-zinc-400">Simular fecha:</label>
+<input type="date" id="today-date-picker" class="bg-bg border border-border rounded-lg px-2.5 py-1 text-zinc-200 font-mono text-xs focus:outline-none focus:border-lime" />
+<button onclick="resetDateToRealToday()" class="text-zinc-400 hover:text-white underline">Hoy real</button>
+</div>
+<div class="flex items-center gap-3">
+<label class="inline-flex items-center gap-2 cursor-pointer select-none">
+<input type="checkbox" id="toggle-afternoon-shift" onchange="toggleAfternoonShift()" class="accent-lime w-3.5 h-3.5 rounded" />
+<span class="text-zinc-300">Hoy turno tarde (zona HYROX despejada AM)</span>
+</label>
+</div>
+</div>
+</div>
+
+<!-- 2-Column Main Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Left: Today's Workout (7 cols) -->
+<div class="lg:col-span-7 space-y-5">
+<div class="bg-card border border-border rounded-2xl p-5">
+<div class="flex items-start justify-between gap-3 mb-4">
+<div>
+<span class="text-[11px] font-mono uppercase tracking-wider text-strava font-bold">Sesión Programada</span>
+<h3 class="text-lg font-bold text-white mt-0.5" id="today-workout-title">--</h3>
+<div class="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-zinc-400 font-mono">
+<span class="inline-flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5 text-zinc-400"></i> <span id="today-workout-duration">--</span></span>
+<span class="inline-flex items-center gap-1"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-zinc-400"></i> <span id="today-workout-location">--</span></span>
+<span id="today-workout-done-badge" class="hidden inline-flex items-center gap-1 text-emerald-400 font-bold"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Completado</span>
+</div>
+</div>
+</div>
+
+<div class="bg-bg/70 border border-border/80 rounded-xl p-3.5 mb-4 text-xs text-zinc-300 leading-relaxed" id="today-workout-objective">
+--
+</div>
+
+<!-- Warmup -->
+<div class="mb-4">
+<div class="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5 flex items-center gap-1.5">
+<i data-lucide="flame" class="w-3.5 h-3.5 text-amber-400"></i> Calentamiento
+</div>
+<p class="text-xs text-zinc-300 bg-surface/80 rounded-xl p-3 border border-border/60" id="today-workout-warmup">--</p>
+</div>
+
+<!-- Exercises / Blocks -->
+<div class="mb-4">
+<div class="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2 flex items-center gap-1.5">
+<i data-lucide="list-checks" class="w-3.5 h-3.5 text-lime"></i> Bloque Principal (Cargas y Ritmos Calibrados)
+</div>
+<div class="space-y-2" id="today-workout-blocks"></div>
+</div>
+
+<!-- Coaching Cues & Cooldown -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-border/60">
+<div class="bg-surface/60 rounded-xl p-3 border border-border/50">
+<div class="text-[11px] font-bold text-cyan uppercase mb-1">Claves Técnicas (186cm/78kg)</div>
+<p class="text-xs text-zinc-300 leading-relaxed" id="today-workout-cues">--</p>
+</div>
+<div class="bg-surface/60 rounded-xl p-3 border border-border/50">
+<div class="text-[11px] font-bold text-emerald-400 uppercase mb-1">Vuelta a la Calma</div>
+<p class="text-xs text-zinc-300 leading-relaxed" id="today-workout-cooldown">--</p>
+</div>
+</div>
+</div>
+
+<!-- Daily Anti-Injury Prehab Checklist -->
+<div class="bg-card border border-border rounded-2xl p-5">
+<div class="flex items-center justify-between mb-3">
+<h4 class="text-sm font-bold text-white flex items-center gap-2">
+<i data-lucide="shield-check" class="w-4 h-4 text-lime"></i> Protocolo Diario Anti-Calambres y Anti-Flato
+</h4>
+<span class="text-[11px] text-zinc-400 font-mono">10 min/día</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="daily-prehab-list">
+<label class="flex items-start gap-2.5 p-3 rounded-xl bg-bg/60 border border-border cursor-pointer hover:border-zinc-600 transition">
+<input type="checkbox" id="chk-prehab-drops" onchange="toggleDailyCheck('prehab', 'drops')" class="mt-0.5 accent-lime w-4 h-4 rounded" />
+<div>
+<div class="text-xs font-semibold text-zinc-200">Drops excéntricos gemelo (3×15)</div>
+<div class="text-[11px] text-zinc-400">En escalón: rodilla recta y doblada, 3s bajada</div>
+</div>
+</label>
+<label class="flex items-start gap-2.5 p-3 rounded-xl bg-bg/60 border border-border cursor-pointer hover:border-zinc-600 transition">
+<input type="checkbox" id="chk-prehab-thoracic" onchange="toggleDailyCheck('prehab', 'thoracic')" class="mt-0.5 accent-lime w-4 h-4 rounded" />
+<div>
+<div class="text-xs font-semibold text-zinc-200">Movilidad T-Spine y Psoas (5–7')</div>
+<div class="text-[11px] text-zinc-400">Extensión torácica + wall slides tras oficina</div>
+</div>
+</label>
+</div>
+</div>
+</div>
+
+<!-- Right: Today's Nutrition & Hydration (5 cols) -->
+<div class="lg:col-span-5 space-y-5">
+<div class="bg-card border border-border rounded-2xl p-5">
+<div class="flex items-center justify-between mb-3">
+<div>
+<span class="text-[11px] font-mono uppercase tracking-wider text-lime font-bold">Nutrición Periodizada</span>
+<h3 class="text-lg font-bold text-white" id="today-nutri-profile">--</h3>
+</div>
+<div class="text-right">
+<div class="text-xl font-extrabold font-mono text-white" id="today-nutri-kcal">--</div>
+<div class="text-[10px] text-zinc-400 uppercase">Objetivo diario</div>
+</div>
+</div>
+
+<!-- Macro Pills -->
+<div class="grid grid-cols-3 gap-2 mb-4">
+<div class="bg-bg/80 border border-border rounded-xl p-2.5 text-center">
+<div class="text-[10px] text-zinc-400 uppercase">Proteína</div>
+<div class="text-sm font-bold font-mono text-cyan" id="today-macro-p">156g</div>
+<div class="text-[10px] text-zinc-500">2.0 g/kg</div>
+</div>
+<div class="bg-bg/80 border border-border rounded-xl p-2.5 text-center">
+<div class="text-[10px] text-zinc-400 uppercase">Carbohidratos</div>
+<div class="text-sm font-bold font-mono text-lime" id="today-macro-c">--</div>
+<div class="text-[10px] text-zinc-500" id="today-macro-ckg">--</div>
+</div>
+<div class="bg-bg/80 border border-border rounded-xl p-2.5 text-center">
+<div class="text-[10px] text-zinc-400 uppercase">Grasas</div>
+<div class="text-sm font-bold font-mono text-amber-400" id="today-macro-g">--</div>
+<div class="text-[10px] text-zinc-500">0.9 g/kg</div>
+</div>
+</div>
+
+<!-- Food Safety / Batch Cooking Alert -->
+<div id="today-batch-alert" class="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs text-amber-200 flex items-start gap-2.5">
+<i data-lucide="utensils" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"></i>
+<span id="today-batch-text">--</span>
+</div>
+
+<!-- Meals Checklist -->
+<div class="space-y-2 mb-5" id="today-meals-list"></div>
+
+<!-- Water & Sodium Tracker -->
+<div class="pt-4 border-t border-border/70">
+<div class="flex items-center justify-between text-xs mb-2">
+<span class="font-semibold text-zinc-200 flex items-center gap-1.5">
+<i data-lucide="droplets" class="w-4 h-4 text-cyan"></i> Hidratación Isotónica
+</span>
+<span class="font-mono font-bold text-cyan"><span id="today-water-current">0</span> / <span id="today-water-target">3000</span> ml</span>
+</div>
+<div class="w-full bg-bg rounded-full h-2 mb-3 overflow-hidden border border-border">
+<div id="today-water-bar" class="bg-cyan h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+</div>
+<div class="flex items-center gap-2">
+<button onclick="addWater(250)" class="flex-1 py-1.5 rounded-lg bg-surface hover:bg-zinc-800 border border-border text-xs font-mono text-zinc-200 transition">+250 ml</button>
+<button onclick="addWater(500)" class="flex-1 py-1.5 rounded-lg bg-surface hover:bg-zinc-800 border border-border text-xs font-mono text-cyan transition">+500 ml</button>
+<button onclick="addWater(-250)" class="px-3 py-1.5 rounded-lg bg-surface hover:bg-zinc-800 border border-border text-xs font-mono text-zinc-400 transition">-250</button>
+</div>
+<p class="text-[11px] text-zinc-400 mt-2" id="today-hydration-tip">--</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ==================== TAB 2: LOGGER (HEVY + STRAVA) ==================== -->
+<section id="tab-logger" class="tab-panel hidden space-y-6">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-card border border-border rounded-2xl p-5">
+<div>
+<span class="text-[11px] font-mono uppercase text-strava font-bold">Workout Logger</span>
+<h2 class="text-xl font-extrabold text-white">Registrar Entrenamiento</h2>
+<p class="text-xs text-zinc-400 mt-0.5">Estilo Hevy (series y kg) + Strava (ritmos y FC Karvonen)</p>
+</div>
+<!-- Live Timer -->
+<div class="flex items-center gap-2 bg-bg border border-border rounded-xl px-3.5 py-2">
+<i data-lucide="timer" class="w-4 h-4 text-lime"></i>
+<span class="font-mono text-lg font-bold text-white tabular-nums" id="logger-timer-display">00:00:00</span>
+<button onclick="toggleTimer()" id="logger-timer-btn" class="ml-2 px-2.5 py-1 rounded-lg bg-lime text-black font-bold text-xs hover:bg-lime/90 transition">Iniciar</button>
+<button onclick="resetTimer()" class="p-1 text-zinc-400 hover:text-white" title="Reiniciar crono"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i></button>
+</div>
+</div>
+
+<!-- Template Selector & Meta -->
+<div class="bg-card border border-border rounded-2xl p-5 space-y-4">
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+<div>
+<label class="block text-[11px] text-zinc-400 uppercase font-semibold mb-1">Fecha de la sesión</label>
+<input type="date" id="log-date" class="w-full bg-bg border border-border rounded-xl px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-lime" />
+</div>
+<div>
+<label class="block text-[11px] text-zinc-400 uppercase font-semibold mb-1">Cargar Plantilla</label>
+<select id="log-template-select" onchange="loadLoggerTemplate(this.value)" class="w-full bg-bg border border-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-lime">
+<option value="custom">-- Sesión en Blanco --</option>
+<option value="A">Sesión A: Fuerza Máxima + Gemelo</option>
+<option value="B">Sesión B: HYROX Libre (Trineos + Brick)</option>
+<option value="C">Sesión C: Clase HYROX Gold's Gym</option>
+<option value="D">Sesión D: Carrera Z2 + Sóleo/Core</option>
+<option value="E">Sesión E: Calidad Carrera (LT2/VO2)</option>
+<option value="F">Sesión F: Tirada Larga / Simulación</option>
+</select>
+</div>
+<div>
+<label class="block text-[11px] text-zinc-400 uppercase font-semibold mb-1">Título de la sesión</label>
+<input type="text" id="log-title" placeholder="Ej. Fuerza Máxima + Sleds" class="w-full bg-bg border border-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-lime" />
+</div>
+</div>
+
+<!-- Rest Timer Helper -->
+<div class="flex flex-wrap items-center gap-2 pt-2 border-t border-border/60 text-xs">
+<span class="text-zinc-400 font-medium flex items-center gap-1"><i data-lucide="hourglass" class="w-3.5 h-3.5 text-cyan"></i> Descanso rápido:</span>
+<button onclick="startRestCountdown(60)" class="px-2.5 py-1 rounded-lg bg-bg border border-border hover:border-cyan text-zinc-300 font-mono">60s</button>
+<button onclick="startRestCountdown(90)" class="px-2.5 py-1 rounded-lg bg-bg border border-border hover:border-cyan text-zinc-300 font-mono">90s</button>
+<button onclick="startRestCountdown(120)" class="px-2.5 py-1 rounded-lg bg-bg border border-border hover:border-cyan text-zinc-300 font-mono">2:00</button>
+<button onclick="startRestCountdown(150)" class="px-2.5 py-1 rounded-lg bg-bg border border-border hover:border-cyan text-zinc-300 font-mono">2:30</button>
+<button onclick="startRestCountdown(180)" class="px-2.5 py-1 rounded-lg bg-bg border border-border hover:border-cyan text-zinc-300 font-mono">3:00</button>
+<span id="rest-countdown-pill" class="hidden ml-auto px-3 py-1 rounded-full bg-cyan/15 border border-cyan/40 text-cyan font-mono font-bold">Descanso: --</span>
+</div>
+</div>
+
+<!-- STRENGTH & STATIONS LOGGER (HEVY STYLE) -->
+<div class="bg-card border border-border rounded-2xl p-5 space-y-4">
+<div class="flex flex-wrap items-center justify-between gap-2">
+<h3 class="text-base font-bold text-white flex items-center gap-2">
+<i data-lucide="dumbbell" class="w-4 h-4 text-lime"></i> Bloque de Fuerza y Estaciones HYROX
+</h3>
+<div class="flex items-center gap-2">
+<select id="quick-add-exercise-select" class="bg-bg border border-border rounded-xl px-3 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-lime">
+<option value="">+ Añadir ejercicio rápido...</option>
+<optgroup label="Fuerza Base (1RM Calibrada)">
+<option value="Sentadilla Trasera (Barra)">Sentadilla Trasera (Barra)</option>
+<option value="Peso Muerto Rumano (RDL)">Peso Muerto Rumano (RDL)</option>
+<option value="Peso Muerto Convencional">Peso Muerto Convencional</option>
+<option value="Press Militar (Barra)">Press Militar (Barra)</option>
+<option value="Press de Banca">Press de Banca</option>
+<option value="Zancada Búlgara (Mancuernas)">Zancada Búlgara (Mancuernas)</option>
+<option value="Remo Inclinado (Barra)">Remo Inclinado (Barra)</option>
+</optgroup>
+<optgroup label="Prehab Gemelos y Core Antiflato">
+<option value="Elevación Talón Sentado (Sóleo)">Elevación Talón Sentado (Sóleo)</option>
+<option value="Elevación Talón 1 Pierna">Elevación Talón 1 Pierna</option>
+<option value="Pallof Press (Antirotación)">Pallof Press (Antirotación)</option>
+<option value="Dead Bug Lastrado">Dead Bug Lastrado</option>
+</optgroup>
+<optgroup label="Estaciones HYROX">
+<option value="Sled Push (Peso Total incl. trineo)">Sled Push (50m / 25m)</option>
+<option value="Sled Pull (Peso Total incl. trineo)">Sled Pull (50m / 25m)</option>
+<option value="DB Thrusters (2x7 kg / 2x10 kg)">DB Thrusters (Mancuernas)</option>
+<option value="Wall Balls (6 kg @ 3.00m)">Wall Balls (6 kg)</option>
+<option value="Farmers Carry (2x24 kg)">Farmers Carry (2x24 kg)</option>
+<option value="Sandbag Lunges (20 kg)">Sandbag Lunges (20 kg)</option>
+<option value="Burpee Broad Jumps">Burpee Broad Jumps</option>
+</optgroup>
+</select>
+<button onclick="addSelectedExercise()" class="px-3 py-1.5 rounded-xl bg-lime text-black font-bold text-xs hover:bg-lime/90 transition">Añadir</button>
+<button onclick="addCustomExercise()" class="px-3 py-1.5 rounded-xl bg-surface border border-border hover:border-zinc-500 text-zinc-200 text-xs font-medium transition">+ Otro</button>
+</div>
+</div>
+
+<div id="logger-exercises-container" class="space-y-4">
+<div class="text-center py-8 text-xs text-zinc-500 border border-dashed border-border rounded-xl">
+No hay ejercicios añadidos todavía. Carga una plantilla arriba o añade un ejercicio.
+</div>
+</div>
+</div>
+
+<!-- RUNNING & ERGOMETERS LOGGER (STRAVA STYLE) -->
+<div class="bg-card border border-border rounded-2xl p-5 space-y-4">
+<div class="flex items-center justify-between">
+<h3 class="text-base font-bold text-white flex items-center gap-2">
+<i data-lucide="activity" class="w-4 h-4 text-strava"></i> Bloque de Running y Ergómetros (Strava Style)
+</h3>
+<button onclick="addRunSegment()" class="px-3 py-1.5 rounded-xl bg-strava/15 border border-strava/40 text-strava hover:bg-strava/25 text-xs font-bold transition">+ Añadir Tramo / Erg</button>
+</div>
+<div id="logger-runs-container" class="space-y-3"></div>
+</div>
+
+<!-- POST-WORKOUT BIOFEEDBACK & SAVE -->
+<div class="bg-card border border-border rounded-2xl p-5 space-y-4">
+<h3 class="text-sm font-bold text-white uppercase tracking-wider">Biofeedback y Control de Limitantes</h3>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+<div>
+<div class="flex justify-between text-xs mb-1">
+<span class="text-zinc-300">RPE Global (Esfuerzo)</span>
+<span class="font-mono font-bold text-lime" id="rpe-val-label">7 / 10</span>
+</div>
+<input type="range" id="log-rpe" min="1" max="10" value="7" oninput="document.getElementById('rpe-val-label').textContent = this.value + ' / 10'" class="w-full accent-lime" />
+</div>
+<div>
+<div class="flex justify-between text-xs mb-1">
+<span class="text-zinc-300">Carga en Gemelos (0=sano)</span>
+<span class="font-mono font-bold text-cyan" id="calves-val-label">1 / 10</span>
+</div>
+<input type="range" id="log-calves" min="0" max="10" value="1" oninput="document.getElementById('calves-val-label').textContent = this.value + ' / 10'" class="w-full accent-cyan" />
+</div>
+<div>
+<div class="flex justify-between text-xs mb-1">
+<span class="text-zinc-300">Flato / ETAP (0=sin flato)</span>
+<span class="font-mono font-bold text-strava" id="flato-val-label">0 / 10</span>
+</div>
+<input type="range" id="log-flato" min="0" max="10" value="0" oninput="document.getElementById('flato-val-label').textContent = this.value + ' / 10'" class="w-full accent-strava" />
+</div>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div>
+<label class="block text-[11px] text-zinc-400 uppercase font-semibold mb-1">Duración real (min)</label>
+<input type="number" id="log-duration-min" value="70" min="10" max="180" class="w-full bg-bg border border-border rounded-xl px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-lime" />
+</div>
+<div>
+<label class="block text-[11px] text-zinc-400 uppercase font-semibold mb-1">Notas técnicas / sensaciones / geles</label>
+<input type="text" id="log-notes" placeholder="Ej. Trineo fluido mediopié-talón, 0 flato..." class="w-full bg-bg border border-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-lime" />
+</div>
+</div>
+
+<div class="flex justify-end pt-2">
+<button onclick="saveWorkoutLog()" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-lime to-emerald-400 text-black font-extrabold text-sm shadow-lg shadow-lime/20 hover:opacity-95 transition active:scale-[0.98] flex items-center justify-center gap-2">
+<i data-lucide="save" class="w-4 h-4"></i> Guardar Entrenamiento en Historial
+</button>
+</div>
+</div>
+</section>
+
+<!-- ==================== TAB 3: PLANIFICACIÓN SEMANAL (22 SEMANAS) ==================== -->
+<section id="tab-plan" class="tab-panel hidden space-y-6">
+<div class="bg-card border border-border rounded-2xl p-5 space-y-4">
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+<div>
+<span class="text-[11px] font-mono uppercase text-lime font-bold">Macrociclo HYROX Málaga · 22 Semanas</span>
+<h2 class="text-xl font-extrabold text-white">Calendario Rotativo (Turnos 6 Semanas)</h2>
+<p class="text-xs text-zinc-400 mt-0.5">Sábados libres de entrenamiento · Zona HYROX despejada en días libres entre semana</p>
+</div>
+<div class="flex items-center gap-2">
+<button onclick="changePlanWeek(-1)" class="p-2 rounded-xl bg-bg border border-border hover:border-zinc-500 text-zinc-200"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+<select id="plan-week-selector" onchange="renderPlanWeek(parseInt(this.value))" class="bg-bg border border-border rounded-xl px-3 py-2 text-xs sm:text-sm font-mono text-white focus:outline-none focus:border-lime"></select>
+<button onclick="changePlanWeek(1)" class="p-2 rounded-xl bg-bg border border-border hover:border-zinc-500 text-zinc-200"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+</div>
+</div>
+
+<!-- Week Overview Strip -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-border/70">
+<div class="bg-bg/70 rounded-xl p-3 border border-border/70">
+<div class="text-[10px] text-zinc-400 uppercase">Patrón de Turno</div>
+<div class="text-xs font-bold text-cyan mt-0.5" id="plan-week-shift">--</div>
+</div>
+<div class="bg-bg/70 rounded-xl p-3 border border-border/70">
+<div class="text-[10px] text-zinc-400 uppercase">Volumen y Ritmo VDOT</div>
+<div class="text-xs font-bold font-mono text-white mt-0.5" id="plan-week-run">--</div>
+</div>
+<div class="bg-bg/70 rounded-xl p-3 border border-border/70">
+<div class="text-[10px] text-zinc-400 uppercase">Fuerza y Trineos</div>
+<div class="text-xs font-bold font-mono text-lime mt-0.5" id="plan-week-strength">--</div>
+</div>
+<div class="bg-bg/70 rounded-xl p-3 border border-border/70">
+<div class="text-[10px] text-zinc-400 uppercase">Hito de la Semana</div>
+<div class="text-xs font-bold text-strava mt-0.5" id="plan-week-milestone">--</div>
+</div>
+</div>
+
+<!-- Complicated Week Filter -->
+<div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border/60">
+<span class="text-xs text-zinc-400">¿Semana complicada laboralmente? Activa el filtro inteligente (sin doblar la semana siguiente):</span>
+<div class="flex items-center gap-1.5 bg-bg p-1 rounded-xl border border-border">
+<button onclick="setWeekPriorityFilter(5)" data-filter="5" class="filter-days-btn px-3 py-1 rounded-lg text-xs font-bold transition">5 días (Full)</button>
+<button onclick="setWeekPriorityFilter(4)" data-filter="4" class="filter-days-btn px-3 py-1 rounded-lg text-xs font-bold transition">4 días</button>
+<button onclick="setWeekPriorityFilter(3)" data-filter="3" class="filter-days-btn px-3 py-1 rounded-lg text-xs font-bold transition">3 días</button>
+<button onclick="setWeekPriorityFilter(2)" data-filter="2" class="filter-days-btn px-3 py-1 rounded-lg text-xs font-bold transition">2 días</button>
+</div>
+</div>
+</div>
+
+<!-- 7 Day Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-3" id="plan-week-grid"></div>
+</section>
+
+<!-- ==================== TAB 4: HISTORIAL Y PROGRESO ==================== -->
+<section id="tab-progreso" class="tab-panel hidden space-y-6">
+<!-- PRs Grid -->
+<div class="bg-card border border-border rounded-2xl p-5">
+<div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+<div>
+<span class="text-[11px] font-mono uppercase text-lime font-bold">Marcas Personales y Fisiología</span>
+<h2 class="text-lg font-extrabold text-white">Tus Referencias Calibradas</h2>
+</div>
+<div class="flex items-center gap-2">
+<label class="text-xs text-zinc-400">Tara trineo Gold's (kg):</label>
+<input type="number" id="setting-sled-tare" onchange="updateSledTare(this.value)" class="w-16 bg-bg border border-border rounded-lg px-2 py-1 text-xs font-mono text-white text-center" />
+</div>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="prs-grid"></div>
+</div>
+
+<!-- HYROX Barcelona vs Málaga Target + Performance Radar -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<div class="lg:col-span-5 bg-card border border-border rounded-2xl p-5 flex flex-col items-center justify-between">
+<div class="w-full flex items-center justify-between mb-2">
+<div>
+<span class="text-[11px] font-mono uppercase text-strava font-bold">Performance Radar</span>
+<h3 class="text-base font-bold text-white">Barcelona vs Objetivo Málaga</h3>
+</div>
+<span class="text-xs font-mono text-lime font-bold">Sub-1:40</span>
+</div>
+<div class="w-full max-w-[320px] my-2" id="radar-chart-container"></div>
+<div class="flex items-center gap-5 text-xs mt-2">
+<span class="flex items-center gap-1.5 text-zinc-300"><span class="w-3 h-3 rounded-sm bg-amber-400/70 border border-amber-400 inline-block"></span> Barcelona (1:51:13)</span>
+<span class="flex items-center gap-1.5 text-zinc-300"><span class="w-3 h-3 rounded-sm bg-lime/40 border border-lime inline-block"></span> Málaga (1:32:58)</span>
+</div>
+</div>
+
+<div class="lg:col-span-7 bg-card border border-border rounded-2xl p-5">
+<div class="flex items-center justify-between mb-3">
+<div>
+<h3 class="text-base font-bold text-white">Desglose Comparativo por Parciales</h3>
+<p class="text-xs text-zinc-400">Ahorro proyectado: <span class="text-lime font-mono font-bold">-18:15</span> (margen de 7 min bajo 1:40:00)</p>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-xs text-left">
+<thead>
+<tr class="border-b border-border text-zinc-400 uppercase font-mono text-[10px]">
+<th class="py-2 pr-2">Segmento</th>
+<th class="py-2 px-2">BCN 2026</th>
+<th class="py-2 px-2">Meta Málaga</th>
+<th class="py-2 pl-2 text-right">Ganancia</th>
+</tr>
+</thead>
+<tbody id="splits-comparison-body" class="divide-y divide-border/50 font-mono"></tbody>
+</table>
+</div>
+</div>
+</div>
+
+<!-- Logged Workouts History -->
+<div class="bg-card border border-border rounded-2xl p-5 space-y-4">
+<div class="flex flex-wrap items-center justify-between gap-3">
+<div>
+<h3 class="text-lg font-extrabold text-white">Historial de Entrenamientos</h3>
+<p class="text-xs text-zinc-400">Datos guardados en localStorage en este dispositivo</p>
+</div>
+<div class="flex flex-wrap items-center gap-2">
+<button onclick="exportData()" class="px-3 py-1.5 rounded-xl bg-surface border border-border hover:border-lime text-xs text-zinc-200 flex items-center gap-1.5">
+<i data-lucide="download" class="w-3.5 h-3.5"></i> Exportar JSON
+</button>
+<label class="px-3 py-1.5 rounded-xl bg-surface border border-border hover:border-cyan text-xs text-zinc-200 flex items-center gap-1.5 cursor-pointer">
+<i data-lucide="upload" class="w-3.5 h-3.5"></i> Importar
+<input type="file" accept=".json" onchange="importData(event)" class="hidden" />
+</label>
+</div>
+</div>
+
+<div id="history-logs-list" class="space-y-3"></div>
+</div>
+</section>
+
+</div>
+</main>
+
+<!-- MOBILE BOTTOM NAVIGATION -->
+<nav class="md:hidden fixed bottom-0 inset-x-0 z-40 glass border-t border-border grid grid-cols-4 px-2 py-1.5">
+<button onclick="switchTab('hoy')" data-tab="hoy" class="mob-nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-[11px] font-medium transition">
+<i data-lucide="layout-dashboard" class="w-5 h-5 mb-0.5"></i> Hoy
+</button>
+<button onclick="switchTab('logger')" data-tab="logger" class="mob-nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-[11px] font-medium transition">
+<i data-lucide="plus-circle" class="w-5 h-5 mb-0.5"></i> Registrar
+</button>
+<button onclick="switchTab('plan')" data-tab="plan" class="mob-nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-[11px] font-medium transition">
+<i data-lucide="calendar-days" class="w-5 h-5 mb-0.5"></i> Plan
+</button>
+<button onclick="switchTab('progreso')" data-tab="progreso" class="mob-nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-[11px] font-medium transition">
+<i data-lucide="trending-up" class="w-5 h-5 mb-0.5"></i> Progreso
+</button>
+</nav>
+
+<!-- TOAST NOTIFICATION -->
+<div id="toast" class="fixed top-5 right-5 z-50 hidden px-4 py-3 rounded-xl bg-zinc-900 border border-lime/50 text-white text-xs font-semibold shadow-2xl flex items-center gap-2">
+<i data-lucide="check-circle" class="w-4 h-4 text-lime"></i>
+<span id="toast-msg">Guardado correctamente</span>
+</div>
+
+<script>
+// ==================== 1. CORE DATA & CONSTANTS ====================
+const STORAGE_KEY = 'hyrox_malaga_2027_coach_v1';
+const PLAN_START_STR = '2026-11-16';
+const RACE_DATE_STR = '2027-04-17'; // Sábado 17/04/2027 (Finde libre en Sem 22)
+
+const HR_MAX = 189;
+const HR_REST = 47;
+const HRR = HR_MAX - HR_REST; // 142
+
+// 22-week master schedule
+const WEEKS_META = [
+{ w: 1, start: '2026-11-16', end: '2026-11-22', pattern: 0, block: 'Bloque 1: Base y Prehab', km: 12, vdot: 35.8, z2: '6:35–7:20', lt2: '5:34', vo2: '5:06', pct1RM: 70, squatKg: '57.5–60', rdlKg: '72.5', sledPush: '120–135', sledPull: '80–90', milestone: 'Retorno limpio pos-BCN' },
+{ w: 2, start: '2026-11-23', end: '2026-11-29', pattern: 1, block: 'Bloque 1: Base y Prehab', km: 13, vdot: 35.8, z2: '6:35–7:20', lt2: '5:34', vo2: '5:06', pct1RM: 72.5, squatKg: '60', rdlKg: '75', sledPush: 'Clase C', sledPull: 'Clase C', milestone: 'Consolidar 5 ses. L–V' },
+{ w: 3, start: '2026-11-30', end: '2026-12-06', pattern: 2, block: 'Bloque 1: Base y Prehab', km: 14.5, vdot: 36.2, z2: '6:30–7:15', lt2: '5:30', vo2: '5:02', pct1RM: 75, squatKg: '62.5', rdlKg: '77.5', sledPush: '140', sledPull: '95', milestone: 'Pulir mediopié-talón Push' },
+{ w: 4, start: '2026-12-07', end: '2026-12-13', pattern: 3, block: 'Bloque 1: Base y Prehab', km: 16, vdot: 36.5, z2: '6:30–7:10', lt2: '5:28', vo2: '5:00', pct1RM: 75, squatKg: '62.5', rdlKg: '80', sledPush: 'Clase C', sledPull: 'Clase C', milestone: 'Cierre carga Bloque 1' },
+{ w: 5, start: '2026-12-14', end: '2026-12-20', pattern: 4, block: 'Bloque 1 · DELOAD 1', km: 9, vdot: 36.5, z2: '6:30–7:10', lt2: '—', vo2: '—', pct1RM: 58, squatKg: '50', rdlKg: '62.5', sledPush: '110', sledPull: '75', milestone: 'Descarga articular (-45%)' },
+{ w: 6, start: '2026-12-21', end: '2026-12-27', pattern: 5, block: 'Bloque 2: Fuerza y Umbral', km: 16, vdot: 37.0, z2: '6:25–7:10', lt2: '5:25', vo2: '4:58', pct1RM: 78, squatKg: 'Test 5RM',rdlKg: 'Test', sledPush: 'Clase C', sledPull: 'Clase C', milestone: 'TEST 1: 5K + 5RM' },
+{ w: 7, start: '2026-12-28', end: '2027-01-03', pattern: 0, block: 'Bloque 2: Fuerza y Umbral', km: 17.5, vdot: 37.5, z2: '6:20–7:05', lt2: '5:22', vo2: '4:55', pct1RM: 80, squatKg: '65–67.5', rdlKg: '82.5', sledPush: '165', sledPull: '115', milestone: 'Inicio sobrecarga trineo' },
+{ w: 8, start: '2027-01-04', end: '2027-01-10', pattern: 1, block: 'Bloque 2: Fuerza y Umbral', km: 19, vdot: 38.0, z2: '6:14–7:00', lt2: '5:18', vo2: '4:52', pct1RM: 82.5, squatKg: '67.5–70', rdlKg: '85', sledPush: 'Clase C', sledPull: 'Clase C', milestone: 'Umbral 5x1k + Gemelo 1P' },
+{ w: 9, start: '2027-01-11', end: '2027-01-17', pattern: 2, block: 'Bloque 2: Fuerza y Umbral', km: 21, vdot: 38.2, z2: '6:14–7:00', lt2: '5:18', vo2: '4:50', pct1RM: 85, squatKg: '70–72.5', rdlKg: '87.5', sledPush: '180', sledPull: '120', milestone: 'Pico fuerza + 13 km Z2' },
+{ w: 10, start: '2027-01-18', end: '2027-01-24', pattern: 3, block: 'Bloque 2 · DELOAD 2', km: 11, vdot: 38.2, z2: '6:14–7:00', lt2: '—', vo2: '—', pct1RM: 60, squatKg: '50–52.5', rdlKg: '65', sledPush: '130', sledPull: '90', milestone: 'Descarga articular (-48%)' },
+{ w: 11, start: '2027-01-25', end: '2027-01-31', pattern: 4, block: 'Bloque 3: Híbrido Polariz.', km: 21, vdot: 38.5, z2: '6:10–6:55', lt2: '5:15', vo2: '4:48', pct1RM: 82, squatKg: '70–75', rdlKg: '85', sledPush: '152', sledPull: '103', milestone: 'TEST 2: Brick Trineos' },
+{ w: 12, start: '2027-02-01', end: '2027-02-07', pattern: 5, block: 'Bloque 3: Híbrido Polariz.', km: 23, vdot: 39.0, z2: '6:08–6:52', lt2: '5:12', vo2: '4:45', pct1RM: 82.5, squatKg: '72.5–75', rdlKg: '87.5', sledPush: 'Clase C', sledPull: 'Clase C', milestone: 'Control 5K + SECA TRU' },
+{ w: 13, start: '2027-02-08', end: '2027-02-14', pattern: 0, block: 'Bloque 3: Híbrido Polariz.', km: 24.5, vdot: 39.3, z2: '6:05–6:50', lt2: '5:10', vo2: '4:44', pct1RM: 85, squatKg: '75–77.5', rdlKg: '90', sledPush: '152', sledPull: '103', milestone: 'Brick + Tirada 14 km' },
+{ w: 14, start: '2027-02-15', end: '2027-02-21', pattern: 1, block: 'Bloque 3: Híbrido Polariz.', km: 23, vdot: 39.5, z2: '6:05–6:50', lt2: '5:08', vo2: '4:42', pct1RM: 78, squatKg: '70', rdlKg: '82.5', sledPush: '152', sledPull: '103', milestone: 'TEST 3A: Sim. Est. 1–4' },
+{ w: 15, start: '2027-02-22', end: '2027-02-28', pattern: 2, block: 'Bloque 3 · DELOAD 3', km: 12, vdot: 39.5, z2: '6:05–6:50', lt2: '—', vo2: '—', pct1RM: 60, squatKg: '52.5', rdlKg: '65', sledPush: '120', sledPull: '85', milestone: 'Descarga (-50% vol.)' },
+{ w: 16, start: '2027-03-01', end: '2027-03-07', pattern: 3, block: 'Bloque 4: Especificidad', km: 24, vdot: 40.0, z2: '6:00–6:45', lt2: '5:05', vo2: '4:40', pct1RM: 80, squatKg: '72.5–75', rdlKg: '85', sledPush: '152', sledPull: '103', milestone: 'TEST 3B: Sim. Est. 5–8' },
+{ w: 17, start: '2027-03-08', end: '2027-03-14', pattern: 4, block: 'Bloque 4: Especificidad', km: 25, vdot: 40.3, z2: '5:55–6:40', lt2: '5:03', vo2: '4:37', pct1RM: 82, squatKg: '75–80', rdlKg: '87.5', sledPush: '152', sledPull: '103', milestone: 'Push+15s+Pull+1k' },
+{ w: 18, start: '2027-03-15', end: '2027-03-21', pattern: 5, block: 'Bloque 4: Especificidad', km: 24, vdot: 40.5, z2: '5:55–6:40', lt2: '5:03', vo2: '4:37', pct1RM: 78, squatKg: '72.5', rdlKg: '85', sledPush: '152', sledPull: '103', milestone: 'Simulación 75% + Gel' },
+{ w: 19, start: '2027-03-22', end: '2027-03-28', pattern: 0, block: 'Bloque 4: Especificidad', km: 23, vdot: 40.5, z2: '5:55–6:40', lt2: '5:03', vo2: '4:37', pct1RM: 78, squatKg: '72.5', rdlKg: '85', sledPush: '152', sledPull: '103', milestone: 'Última semana carga alta' },
+{ w: 20, start: '2027-03-29', end: '2027-04-04', pattern: 1, block: 'Bloque 4: Especificidad', km: 21, vdot: 40.5, z2: '5:55–6:40', lt2: '5:03', vo2: '4:37', pct1RM: 72, squatKg: '65', rdlKg: '75', sledPush: '152', sledPull: '103', milestone: 'TEST 4: Challenge Completo' },
+{ w: 21, start: '2027-04-05', end: '2027-04-11', pattern: 2, block: 'Bloque 5 · TAPER 1', km: 13, vdot: 40.5, z2: '5:55–6:40', lt2: '5:03', vo2: '4:37', pct1RM: 70, squatKg: '62.5', rdlKg: '72.5', sledPush: '152', sledPull: '103', milestone: 'Recorte exp. -40% vol.' },
+{ w: 22, start: '2027-04-12', end: '2027-04-18', pattern: 3, block: 'Bloque 5 · CARRERA MÁLAGA', km: 14, vdot: 40.5, z2: '5:55–6:40', lt2: '5:03', vo2: '—', pct1RM: 0, squatKg: 'Movil.', rdlKg: 'Movil.',sledPush: '—', sledPull: '—', milestone: 'HYROX MÁLAGA (Sáb 17/04)' }
+];
+
+const SHIFT_LABELS = [
+'Jue–Vie libre (Trabaja Sáb–Dom)',
+'Finde libre (Trabaja Lun–Vie)',
+'Lun–Mar libre (Trabaja Sáb–Dom)',
+'Finde libre (Trabaja Lun–Vie)',
+'Mié–Jue libre (Trabaja Sáb–Dom)',
+'Finde libre (Trabaja Lun–Vie)'
+];
+
+// Pattern -> array of 7 day session codes (Mon=0 .. Sun=6)
+const PATTERN_SESSIONS = {
+0: ['C', 'D', 'A', 'B', 'F', 'R', 'R'], // Jue-Vie libre
+1: ['C', 'D', 'A', 'E', 'C', 'R', 'O'], // Finde libre
+2: ['B', 'D', 'A', 'E', 'C', 'R', 'R'], // Lun-Mar libre
+3: ['C', 'D', 'A', 'E', 'C', 'R', 'O'], // Finde libre
+4: ['C', 'D', 'B', 'E', 'C', 'R', 'R'], // Mié-Jue libre
+5: ['C', 'D', 'A', 'E', 'C', 'R', 'O'] // Finde libre
+};
+
+const NUTRITION_PROFILES = {
+R: {
+name: 'Descanso / Oficina', kcal: 2650, p: 156, c: 349, cKg: '4.5 g/kg', g: 70,
+water: 2700, tip: '2.5–2.8 L agua repartida. Sal habitual en comidas.',
+meals: [
+{ id: 'd', time: '07:30', label: 'Desayuno', desc: 'Tortitas: 80g avena + 1 huevo + 150ml claras + 1 plátano + 10g miel' },
+{ id: 'mm', time: '11:00', label: 'Media Mañana', desc: '200g queso batido 0% + 25g almendras + 1 manzana' },
+{ id: 'tp', time: '13:30', label: 'Comida / Táper', desc: '300g lentejas/garbanzos cocidos + 170g pavo + espinacas + 15ml AOVE (en frío)' },
+{ id: 'm', time: '17:30', label: 'Merienda', desc: '80g pan centeno + 70g pavo fiambre' },
+{ id: 'c', time: '21:00', label: 'Cena', desc: '300g boniato asado + 200g merluza + calabacín + 15ml AOVE' }
+]
+},
+M: {
+name: 'Carga Moderada (A / D / E)', kcal: 3150, p: 156, c: 474, cKg: '6.1 g/kg', g: 70,
+water: 3100, tip: '3.0–3.2 L agua + 0.3–0.7 g/L sodio durante el entreno. Separa comida sólida 2.5–3h de series.',
+meals: [
+{ id: 'd', time: '07:30', label: 'Desayuno', desc: '100g avena (o 3 huevos+2 claras+100g pan) + 250ml leche desn. + 30g whey + plátano + 15g nueces' },
+{ id: 'mm', time: '11:00', label: 'Media Mañana (Oficina)', desc: '100g pan centeno + 80g lomo/pavo + 1/2 aguacate' },
+{ id: 'tp', time: '13:30', label: 'Táper Oficina', desc: '340g pasta integral (Mié) o arroz jazmín (Mar/Jue) + 180g ternera 5%/pollo + verdura + 15ml AOVE' },
+{ id: 'm', time: '17:15 / Post', label: 'Pre / Post-Entreno', desc: '3 tortitas arroz + 20g miel + 30g whey + 1 plátano' },
+{ id: 'c', time: '21:00', label: 'Cena', desc: '360g boniato o patata + 200g salmón/bacalao + espárragos + 10ml AOVE' }
+]
+},
+A: {
+name: 'Alta Carga (B / C / F)', kcal: 3450, p: 156, c: 549, cKg: '7.0 g/kg', g: 70,
+water: 3400, tip: '3.3–3.5 L agua + bebida isotónica diluida (evita mezclas hipertónicas anti-flato).',
+meals: [
+{ id: 'd', time: '07:30', label: 'Desayuno', desc: '110g crema arroz + 250ml leche desn. + 30g whey + plátano + 20g miel' },
+{ id: 'mm', time: '11:00', label: 'Media Mañana (Oficina)', desc: '100g pan centeno + 90g pavo + 1/2 aguacate + 1 manzana' },
+{ id: 'tp', time: '13:30', label: 'Táper Oficina', desc: '380g arroz basmati/jazmín cocido + 180g pollo + brócoli/judías + 15ml AOVE (en frío)' },
+{ id: 'm', time: '16:30 / Post', label: 'Pre (90\' antes) + Post', desc: 'Pre: 60g crema arroz en agua + 15g miel · Post: 45g maltodextrina + 30g whey + 5g creatina' },
+{ id: 'c', time: '21:00', label: 'Cena', desc: '400g patata asada + 200g ternera/solomillo + ensalada + 10ml AOVE' }
+]
+},
+S: {
+name: 'Simulación / Carga Pico', kcal: 3650, p: 156, c: 608, cKg: '7.8 g/kg', g: 66,
+water: 3500, tip: '3.5 L agua con electrolitos. Ensaya 1 gel isotónico fluido + 150–200 ml agua pura.',
+meals: [
+{ id: 'd', time: '2.5h Pre', label: 'Desayuno Pre-Sim', desc: '120g crema arroz en agua + plátano maduro + 20g miel + 25g whey aislada + 400ml agua con sal' },
+{ id: 'mm', time: 'Intra / Post', label: 'Intra + Post Inmediato', desc: 'Intra: 1 gel isotónico + 200ml agua · Post: 65g ciclodextrina + 35g whey + 5g creatina' },
+{ id: 'tp', time: '14:00', label: 'Comida', desc: '420g pasta blanca cocida + 200g pollo + salsa tomate natural + 10ml AOVE' },
+{ id: 'm', time: '17:30', label: 'Merienda', desc: '100g pan blanco + 80g pavo + plátano + 15g miel' },
+{ id: 'c', time: '21:00', label: 'Cena', desc: '450g patata asada + 200g ternera + 15ml AOVE + 200g yogur proteico' }
+]
+}
+};
+
+const BARCELONA_SPLITS = [
+{ name: 'Run 1', bcn: '5:14', target: '5:20', diff: '+6s', bcnPct: 48, tgtPct: 75 },
+{ name: '1. SkiErg', bcn: '5:13', target: '4:55', diff: '-18s', bcnPct: 50, tgtPct: 76 },
+{ name: 'Run 2', bcn: '5:17', target: '5:20', diff: '+3s', bcnPct: 47, tgtPct: 75 },
+{ name: '2. Sled Push', bcn: '6:20', target: '4:00', diff: '-2:20', bcnPct: 24, tgtPct: 70 },
+{ name: 'Run 3', bcn: '6:14', target: '5:35', diff: '-39s', bcnPct: 35, tgtPct: 72 },
+{ name: '3. Sled Pull', bcn: '9:05', target: '5:30', diff: '-3:35', bcnPct: 18, tgtPct: 72 },
+{ name: 'Run 4', bcn: '6:31', target: '5:38', diff: '-53s', bcnPct: 33, tgtPct: 71 },
+{ name: '4. Burpee BJ', bcn: '6:58', target: '6:10', diff: '-48s', bcnPct: 38, tgtPct: 70 },
+{ name: 'Run 5', bcn: '6:34', target: '5:40', diff: '-54s', bcnPct: 32, tgtPct: 71 },
+{ name: '5. Row', bcn: '5:51', target: '5:20', diff: '-31s', bcnPct: 44, tgtPct: 74 },
+{ name: 'Run 6', bcn: '6:27', target: '5:35', diff: '-52s', bcnPct: 34, tgtPct: 72 },
+{ name: '6. Farmers C.',bcn: '2:08', target: '2:05', diff: '-3s', bcnPct: 84, tgtPct: 88 },
+{ name: 'Run 7', bcn: '7:38', target: '5:50', diff: '-1:48', bcnPct: 20, tgtPct: 68 },
+{ name: '7. S. Lunges', bcn: '6:51', target: '6:00', diff: '-51s', bcnPct: 36, tgtPct: 70 },
+{ name: 'Run 8 (+WB)', bcn: '7:16', target: '5:45', diff: '-1:31', bcnPct: 26, tgtPct: 69 },
+{ name: '8. Wall Balls',bcn: '9:58', target: '7:45', diff: '-2:13', bcnPct: 22, tgtPct: 72 },
+{ name: 'Roxzone Total',bcn: '7:38', target: '6:30', diff: '-1:08', bcnPct: 55, tgtPct: 78 },
+{ name: 'TOTAL RACE', bcn: '1:51:13', target: '1:32:58', diff: '-18:15', bcnPct: 38, tgtPct: 74, highlight: true }
+];
+
+const DEFAULT_STATE = {
+sledTare: 35,
+afternoonShiftToday: false,
+weekPriorityFilter: 5,
+selectedPlanWeek: 1,
+prs: {
+'5K Llano': '26:30 (5:18/km)',
+'10K Llano': '56:41 (5:40/km)',
+'Sentadilla 1RM est.': '82.6 kg (70×6)',
+'RDL 1RM est.': '103.1 kg (90×5)',
+'Press Banca 1RM est.': '70.8 kg (60×6)',
+'Press Militar 1RM est.': '50.2 kg (40×8)',
+'Farmers Carry 200m': '2:08 (84.0%)',
+'HYROX Debut BCN': '1:51:13 (#1513)'
+},
+dailyChecks: {}, // keyed by YYYY-MM-DD
+logs: [
+{
+id: 'bcn-2026-11-12',
+date: '2026-11-12',
+title: 'HYROX Barcelona 2026 (Debut Men Open)',
+type: 'COMPETICIÓN',
+durationMin: 111,
+rpe: 10,
+calves: 9,
+flato: 8,
+notes: '1:51:13 oficiales (#1513). Farmers Carry 2:08 (84%). Atasco en trineos (6:20 + 9:05), calambres gemelos en Run 7 y flato.',
+exercises: [
+{ name: 'Sled Push (152 kg)', sets: [{ kg: 152, reps: '50m (6:20)', done: true }] },
+{ name: 'Sled Pull (103 kg)', sets: [{ kg: 103, reps: '50m (9:05)', done: true }] },
+{ name: 'Farmers Carry (2x24 kg)', sets: [{ kg: 48, reps: '200m (2:08)', done: true }] },
+{ name: 'Sandbag Lunges (20 kg)', sets: [{ kg: 20, reps: '100m (6:51)', done: true }] },
+{ name: 'Wall Balls (6 kg @ 3.00m)', sets: [{ kg: 6, reps: '100 (9:58)', done: true }] }
+],
+runs: [
+{ label: '8 x 1.000m Carrera Total', km: 8.0, time: '51:11', pace: '6:24/km', hr: 174 }
+]
+}
+]
+};
+
+let appState = loadState();
+let currentLoggerExercises = [];
+let currentLoggerRuns = [];
+let timerInterval = null;
+let timerSeconds = 0;
+let timerRunning = false;
+let restInterval = null;
+
+// ==================== 2. STATE & DATE HELPERS ====================
+function loadState() {
+try {
+const raw = localStorage.getItem(STORAGE_KEY);
+if (!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
+const parsed = JSON.parse(raw);
+return { ...JSON.parse(JSON.stringify(DEFAULT_STATE)), ...parsed };
+} catch (e) {
+return JSON.parse(JSON.stringify(DEFAULT_STATE));
+}
+}
+
+function saveState() {
+localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+}
+
+function getLocalTodayStr() {
+const now = new Date();
+const y = now.getFullYear();
+const m = String(now.getMonth() + 1).padStart(2, '0');
+const d = String(now.getDate()).padStart(2, '0');
+return `${y}-${m}-${d}`;
+}
+
+function parseDateLocal(str) {
+const [y, m, d] = str.split('-').map(Number);
+return new Date(y, m - 1, d);
+}
+
+function formatDateES(str) {
+const dt = parseDateLocal(str);
+return dt.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function getDaysUntilRace(fromStr) {
+const from = parseDateLocal(fromStr);
+const race = parseDateLocal(RACE_DATE_STR);
+return Math.max(0, Math.round((race - from) / 86400000));
+}
+
+function getWeekAndDayForDate(dateStr) {
+const dt = parseDateLocal(dateStr);
+const start = parseDateLocal(PLAN_START_STR);
+const diffDays = Math.floor((dt - start) / 86400000);
+if (diffDays < 0) return { weekMeta: WEEKS_META[0], dayIdx: 0, prePlan: true };
+const weekIdx = Math.min(21, Math.floor(diffDays / 7));
+const dayIdx = ((dt.getDay() + 6) % 7); // Mon=0 .. Sun=6
+return { weekMeta: WEEKS_META[weekIdx], dayIdx, prePlan: false };
+}
+
+function getSessionForDay(weekMeta, dayIdx, afternoonOverride = false) {
+let code = PATTERN_SESSIONS[weekMeta.pattern][dayIdx];
+const isWorkdayMorning = (code !== 'R' && code !== 'O' && !(weekMeta.pattern === 0 && dayIdx >= 3) && !(weekMeta.pattern === 2 && dayIdx <= 1) && !(weekMeta.pattern === 4 && (dayIdx === 2 || dayIdx === 3)));
+
+// Override if afternoon shift on a workday where Class C was scheduled
+if (afternoonOverride && code === 'C' && isWorkdayMorning) {
+code = 'B';
+}
+
+// Week 22 special race week tweaks
+if (weekMeta.w === 22) {
+if (dayIdx === 0) return buildSessionSpec('TAPER_RUN', weekMeta, dayIdx);
+if (dayIdx === 1) return buildSessionSpec('TAPER_SPARK', weekMeta, dayIdx);
+if (dayIdx === 2 || dayIdx === 3 || dayIdx === 4) return buildSessionSpec('R_CARBO', weekMeta, dayIdx);
+if (dayIdx === 5) return buildSessionSpec('RACE', weekMeta, dayIdx);
+if (dayIdx === 6) return buildSessionSpec('R', weekMeta, dayIdx);
+}
+return buildSessionSpec(code, weekMeta, dayIdx);
+}
+
+function buildSessionSpec(code, weekMeta, dayIdx) {
+const isDeload = weekMeta.block.includes('DELOAD');
+const isTaper = weekMeta.block.includes('TAPER') || weekMeta.block.includes('CARRERA');
+const isSimWeek = [14, 16, 18, 20].includes(weekMeta.w);
+
+const specs = {
+'A': {
+code: 'A', name: 'Sesión A · Fuerza Máxima + Gemelo', duration: '75–80 min', location: "Gold's Gym (Racks / Pure Kraft)",
+nutriKey: 'M', color: 'lime',
+objective: `Subir sentadilla (${weekMeta.squatKg} kg, ${weekMeta.pct1RM}% 1RM) para desbloquear Sled Push y economía de carrera sin invadir la zona HYROX ocupada.`,
+warmup: '5 min bici/remo Z1 + 2×10 wall slides + 2×10 puentes glúteo + 2×8 sentadilla aire + aprox. barra (40kg×6, 52.5kg×4).',
+cues: 'Rompe el paralelo en sentadilla para transferir a Wall Balls. Empuje de cadera explosivo en RDL. Mantén 2–3 min pausa en básicos.',
+cooldown: 'Estiramiento psoas en zancada baja + pectoral menor en pared (2×30s/lado) + 5 respiraciones diafragmáticas.',
+blocks: [
+{ name: 'Sentadilla Trasera (Barra)', detail: isDeload ? `3×6 @ ${weekMeta.squatKg} kg (RIR 3)` : (weekMeta.w <= 4 ? `4×8 @ ${weekMeta.squatKg} kg` : `4–5×4–5 @ ${weekMeta.squatKg} kg`), rest: '2.5–3 min' },
+{ name: 'Peso Muerto Rumano (RDL)', detail: isDeload ? `3×6 @ ${weekMeta.rdlKg} kg` : `4×5 @ ${weekMeta.rdlKg} kg`, rest: '2.5 min' },
+{ name: 'Superserie: Búlgaras + Press Militar', detail: '3×8–10/p (2×14–18kg) + 3×6–8 Press Militar (35–42.5kg)', rest: '60s / 90s' },
+{ name: 'Remo Barra/Pure Kraft + Farmers Carry', detail: '3×8–10 Remo (55–65kg) + 3×45m Farmers (2×26–30kg)', rest: '75–90s' },
+{ name: 'Gemelo a 1 Pierna (Smith/Mancuerna)', detail: '4×10–12 reps (subida 1s, bajada lenta 3s, RIR 2)', rest: '60s' }
+],
+templateKey: 'A'
+},
+'B': {
+code: 'B', name: 'Sesión B · HYROX Libre (Zona Despejada)', duration: '75–85 min', location: "Gold's Gym Área HYROX (AM Despejada)",
+nutriKey: 'A', color: 'strava',
+objective: `Entreno personalizado sin clase: dominar Sled Push (${weekMeta.sledPush} kg) y Pull (${weekMeta.sledPull} kg) con transiciones de carrera comprometida.`,
+warmup: '5 min trote cinta (1%, 6:40/km) + movilidad tobillo/cadera + 2×10 push-up plus + 2×10m bear crawl + 1×12.5m trineo 80kg.',
+cues: `Tara trineo aprox. ${appState.sledTare}kg (réstala al cargar discos). Push: 45°, codos 90–120°, mediopié-talón, pasos 15–20cm, exhala cada 2–3 pasos. Pull: walking back desde cadera, cuerda al lateral.`,
+cooldown: '5 min caminata Z1 (<120 lpm) + 400ml isotónico suave + rodillo suave gemelos/cuádriceps.',
+blocks: weekMeta.w < 11 ? [
+{ name: 'Sled Push Técnico/Sobrecarga', detail: `5×25m @ ${weekMeta.sledPush} kg totales (sin parar en giro)`, rest: '2 min' },
+{ name: 'Sled Pull (Walking Back)', detail: `5×25m @ ${weekMeta.sledPull} kg totales (cuerda al lado)`, rest: '90s' },
+{ name: 'Combo Ski + Run + Wall Balls', detail: '3× [500m Ski (talones planos) + 400m @ 5:15/km + 20–25 WB (6kg)]', rest: '2 min' }
+] : [
+{ name: 'Brick Push-Pull-Run', detail: `4× [25m Push ${weekMeta.sledPush}kg + 12s respiro + 25m Pull ${weekMeta.sledPull}kg + 1km @ ${weekMeta.lt2}/km]`, rest: '2.5 min' },
+{ name: 'Bloque Terminal Fatigado', detail: '3× [250m Row + 50m Farmers 2×24kg + 25m Lunges 20kg + 25 WB 6kg]', rest: '2 min' }
+],
+templateKey: 'B'
+},
+'C': {
+code: 'C', name: "Sesión C · Clase HYROX Gold's Gym", duration: '70–75 min', location: "Gold's Gym Terrassa (HYROX Club)",
+nutriKey: 'A', color: 'strava',
+objective: isSimWeek && dayIdx === 4 ? 'Simulación controlada / alta transferencia en clase o por libre.' : 'Estímulo híbrido regulado (RPE 7.5–8) automatizando técnica limpia y respiración anti-flato.',
+warmup: '10 min previos por tu cuenta: rodillo torácico (10 reps) + 2×15 wall slides + 2×10 push-up plus + 2×10m bear crawl.',
+cues: 'Talones 100% planos en SkiErg. En Wall Balls rompe siempre en 5×20 o 4×25 con 6–8s pausa. Pausa 10–15s antes de coger cuerda de Pull.',
+cooldown: '5 min caminata (<120 lpm) + 400ml isotónico + respiración diafragmática profunda.',
+blocks: [
+{ name: 'Prehab Obligatorio Pre-Clase', detail: '10 min extensión T-spine + activación serrato y glúteo', rest: 'Continuo' },
+{ name: 'Clase Oficial HYROX (60 min)', detail: isDeload ? 'Ejecutar al 50–60% volumen (RPE 6.5, técnica pura)' : 'Seguir WOD del coach manteniendo RPE 7.5–8.5 y exhalación rítmica', rest: 'Según WOD' },
+{ name: 'Finisher / Opcional DB Thrusters', detail: 'Si faltó volumen WB: 2×20 DB Thrusters fluidos (2×7kg–10kg)', rest: '60s' }
+],
+templateKey: 'C'
+},
+'D': {
+code: 'D', name: 'Sesión D · Carrera Z2 Real + Sóleo + Core', duration: '60–70 min', location: 'Exterior llano / Cinta 1% + Gimnasio',
+nutriKey: 'M', color: 'cyan',
+objective: `Corregir brecha aeróbica (Riegel 1.097) rodando estrictamente en Z2 real (${weekMeta.z2}/km · 132–149 lpm) + blindar gemelo y transverso.`,
+warmup: '8 min: movilidad tobillo en pared (10/lado) + balanceos pierna + 2×12 puentes glúteo + 3 min caminata ágil.',
+cues: 'NO pases de 149 lpm; si subes, afloja el paso o camina 30s. Respiración abdominal 3 pasos inhalar / 2 exhalar.',
+cooldown: 'Estiramiento suave psoas y gemelos (2×30s/lado).',
+blocks: [
+{ name: 'Rodaje Base Zona 2', detail: isDeload ? `30–35 min @ ${weekMeta.z2}/km (132–149 lpm)` : `40–50 min @ ${weekMeta.z2}/km (132–149 lpm)`, rest: 'Continuo' },
+{ name: 'Elevación Talón Sentado (Sóleo)', detail: '4×15 reps (barra/mancuerna 25–40kg o máquina; 3s bajada, 1s pausa abajo)', rest: '60s' },
+{ name: 'Pallof Press + Weighted Dead Bug', detail: '3×12/lado Pallof (2s pausa) + 3×10/lado Dead Bug (disco 5–10kg, soltar aire)', rest: '45s' },
+{ name: 'Plancha RKC Anti-Flato', detail: '3×35–40s contracción máxima glúteo/transverso', rest: '45s' }
+],
+templateKey: 'D'
+},
+'E': {
+code: 'E', name: weekMeta.w >= 11 ? 'Sesión E · Polarizado VO2max / Comprometido' : (weekMeta.w >= 6 ? 'Sesión E · Intervalos Umbral LT2' : 'Sesión E · Z2 + Cuestas Técnicas'),
+duration: '60–70 min', location: 'Asfalto llano / Pista / Cinta 1%',
+nutriKey: 'M', color: 'amber',
+objective: `Elevar tu velocidad de umbral LT2 (${weekMeta.lt2}/km) y VO2max (${weekMeta.vo2}/km) y validar tolerancia digestiva isotónica sin flato.`,
+warmup: '12 min: 10 min trote Z1–Z2 (6:45–7:15/km) + movilidad tobillo/cadera + 4×60m progresivos.',
+cues: 'Diferencia entre 1ª y última serie <=4 s/km. En semanas Bloque 3–4 ensaya 1 gel isotónico fluido con 150–200 ml agua pura.',
+cooldown: '5 min trote ultra suave Z1 + respiración diafragmática.',
+blocks: weekMeta.w <= 5 ? [
+{ name: 'Bloque Aeróbico Base', detail: isDeload ? '25 min Z2 cómodo' : `25–30 min Z2 (${weekMeta.z2}/km, 132–149 lpm)`, rest: '—' },
+{ name: 'Cuestas Técnicas Cortas', detail: isDeload ? '4×60m rectas suaves en llano' : '8×12s subida suave 4–5% (impulso cadera, sin forzar gemelo)', rest: '90s caminando' }
+] : (weekMeta.w <= 10 ? [
+{ name: 'Intervalos de Umbral (LT2)', detail: isDeload ? '3×1.000m cómodos en Z3 (5:45/km)' : `4–5×1.000m @ ${weekMeta.lt2}/km (163–175 lpm, RPE 8)`, rest: '90–120s trote/cam.' },
+{ name: 'Core RKC', detail: '3×35s Plancha RKC', rest: '45s' }
+] : [
+{ name: weekMeta.w % 2 === 1 ? 'Intervalos VO2max (Z5)' : 'Carrera Comprometida + Gut Training', detail: weekMeta.w % 2 === 1 ? `5–6×800m @ ${weekMeta.vo2}/km (175–186 lpm)` : `4× [15 gemelo 2×16kg + 15 burpees + 800m @ ${weekMeta.lt2}/km]`, rest: '90s–2 min' },
+{ name: 'Ensayo Gel Isotónico', detail: 'En mitad de sesión: 1 gel isotónico + 150–200ml agua pura', rest: 'En pausa' }
+]),
+templateKey: 'E'
+},
+'F': {
+code: 'F', name: isSimWeek ? `Sesión F · ${weekMeta.milestone}` : 'Sesión F · Tirada Larga Aeróbica Z2',
+duration: '70–90 min', location: isSimWeek ? "Gold's Gym" : 'Asfalto llano',
+nutriKey: isSimWeek ? 'S' : 'A', color: 'lime',
+objective: isSimWeek ? `Validar ritmo objetivo (${weekMeta.lt2}/km), transiciones Rox Out <30s y pauta digestiva cero-flato.` : `Cerrar brecha 5K–10K construyendo resistencia aeróbica continua en Z2 (${weekMeta.z2}/km).`,
+warmup: '5–8 min caminata ágil + 2×10 puentes glúteo + movilidad tobillo.',
+cues: 'Cadencia viva (170–180 spm) sin alargar zancada. Mantén respiración abdominal profunda constante.',
+cooldown: '5 min caminata suave + bebida isotónica (0.3–0.7g/L sodio).',
+blocks: isSimWeek ? [
+{ name: weekMeta.milestone, detail: weekMeta.w === 14 ? '1km + 1000m Ski + 1km + 50m Push 152 + 1km + 50m Pull 103 + 1km + 80m BBJ' : (weekMeta.w === 16 ? '1km + 1000m Row + 1km + 200m Farmers + 1km + 100m Lunges + 1km + 100 WB' : 'Simulación 75% / Challenge completo con calzado y gel isotónico'), rest: 'Continuo' }
+] : [
+{ name: 'Rodaje Largo Continuo Z2', detail: `${Math.max(8, Math.round(weekMeta.km * 0.55))} km continuos @ ${weekMeta.z2}/km (132–149 lpm)`, rest: 'Continuo' },
+{ name: 'Progresiones Finales (desde S3)', detail: '4×60m rectas progresivas suaves', rest: '60s' }
+],
+templateKey: 'F'
+},
+'R': {
+code: 'R', name: 'Descanso Total / Día Laboral Finde', duration: '0 min (Prehab 10\')', location: 'Casa / Trabajo',
+nutriKey: 'R', color: 'zinc',
+objective: 'Asimilación muscular y recuperación del sistema nervioso central. Cero entrenamiento de impacto.',
+warmup: 'Opcional: caminata tranquila 15–20 min Z1.',
+cues: 'Prioriza 8–9h de sueño. Si te toca Tanda A/B de Batch Cooking, prepara tápers y enfría arroz rápido <5°C.',
+cooldown: 'Movilidad torácica 5 min tras la oficina.',
+blocks: [
+{ name: 'Descanso Pasivo + Sueño', detail: 'Dormir 8–9 horas. No compensar entrenamientos en semanas siguientes.', rest: '—' }
+],
+templateKey: 'custom'
+},
+'O': {
+code: 'O', name: isSimWeek ? `Domingo Opcional · ${weekMeta.milestone}` : 'Domingo Opcional · Z2 Suave o Descanso',
+duration: isSimWeek ? '75–90 min' : '0–45 min (Opcional)', location: "Exterior / Gold's Gym (8–13h)",
+nutriKey: isSimWeek ? 'S' : 'R', color: 'cyan',
+objective: isSimWeek ? 'Si el viernes hiciste clase normal, realiza hoy la simulación parcial/Challenge aprovechando el finde libre.' : 'Si completaste Lun–Vie, descansa y haz Tanda A de tápers; si faltó algún rodaje, haz 35–45 min Z2 suaves.',
+warmup: '5 min movilidad articular suave.',
+cues: 'Solo añade volumen si estás fresco. Realiza la Tanda A de Batch Cooking por la tarde (Lun–Mié).',
+cooldown: 'Estiramiento suave + preparación de tápers.',
+blocks: isSimWeek ? [
+{ name: weekMeta.milestone, detail: 'Simulación programada de la semana en horario matinal 8:00–13:00', rest: 'Continuo' }
+] : [
+{ name: 'Opcional Z2 + Tanda A Batch Cooking', detail: '35–45 min trote cómodo Z2 (132–149 lpm) o descanso total', rest: '—' }
+],
+templateKey: isSimWeek ? 'F' : 'D'
+},
+'TAPER_RUN': {
+code: 'TAPER_RUN', name: 'Taper Final · Activación Corta', duration: '35 min', location: 'Exterior llano',
+nutriKey: 'R', color: 'cyan',
+objective: 'Mantener flujo sanguíneo y tono neuromuscular sin vaciar glucógeno.',
+warmup: '5 min caminata + movilidad cadera.',
+cues: 'Dieta de bajo residuo desde hoy (sin verduras crudas, legumbres ni integrales).',
+cooldown: '5 min movilidad torácica.',
+blocks: [
+{ name: 'Trote Z2 + Sentadillas aire', detail: '20 min muy suaves (6:15–6:40/km) + 2×5 sentadillas al aire', rest: '60s' }
+],
+templateKey: 'D'
+},
+'TAPER_SPARK': {
+code: 'TAPER_SPARK', name: 'Taper Final · Chispas Neuromusculares', duration: '30 min', location: 'Exterior llano',
+nutriKey: 'R', color: 'amber',
+objective: 'Activar reclutamiento rápido antes del viaje y carga de hidratos.',
+warmup: '5 min caminata + 2×10 wall slides.',
+cues: 'Sal con sensación de frescura absoluta.',
+cooldown: 'Estiramiento muy suave.',
+blocks: [
+{ name: 'Trote + Rectas Vivas', detail: '15 min muy suaves + 3×60m progresivos a ritmo carrera (5:15/km)', rest: '90s' }
+],
+templateKey: 'D'
+},
+'R_CARBO': {
+code: 'R_CARBO', name: dayIdx === 3 ? 'Viaje BCN–AGP + Carbo-Loading' : 'Descanso + Carbo-Loading (8–10 g/kg)',
+duration: '0 min', location: 'Oficina / Viaje Málaga',
+nutriKey: 'S', color: 'lime',
+objective: 'Saturar glucógeno muscular y hepático con bajo residuo y 3.5 L agua + electrolitos.',
+warmup: 'Paseo suave 15 min al llegar a Málaga (Jueves).',
+cues: 'Cero fibra y cero grasas pesadas. Corte de líquidos el viernes a las 20:00 para dormir 8–9h.',
+cooldown: 'Dejar zapatillas limpias, dorsal y geles isotónicos listos.',
+blocks: [
+{ name: 'Supercompensación Glucógeno + Agua', detail: 'Crema de arroz, arroz jazmín blanco recién hecho, puré patata sin piel, 3.5L agua + sales', rest: '—' }
+],
+templateKey: 'custom'
+},
+'RACE': {
+code: 'RACE', name: '🏁 DÍA DE COMPETICIÓN · HYROX MÁLAGA', duration: '~93–98 min', location: 'FYCMA Málaga (08:30–12:00 prov.)',
+nutriKey: 'S', color: 'lime',
+objective: 'Ejecutar tu mejor marca personal: objetivo Sub-1:40 (presupuesto limpio 1:32:58).',
+warmup: 'T-40m: 6\' trote + 2×10 push-up plus + 2×10m bear crawl + 2×10 puentes glúteo + 2×40m rectas 5:00/km. Gel isotónico T-15m + 150ml agua.',
+cues: 'Runs 1–2 a 5:20/km estricto (NUNCA más rápido). Ski talones planos. Sled Push 45°, codos 90–120°, mediopié-talón, exhalar cada 2–3 pasos. Pausa 12s antes de Pull. WB 4×25.',
+cooldown: 'Batido inmediato: 60g ciclodextrina + 35g whey + 5g creatina + 1g sal en 600ml agua.',
+blocks: [
+{ name: '8 × 1 km Carrera (Presupuesto 44:43)', detail: 'Media 5:35/km (R1-2: 5:20 · R3-6: 5:35–5:40 · R7-8: 5:45–5:50)', rest: 'Roxzone 6:30 total' },
+{ name: '8 Estaciones Oficiales (41:45)', detail: 'Ski 4:55 · Push 4:00 · Pull 5:30 · BBJ 6:10 · Row 5:20 · Carry 2:05 · Lunges 6:00 · WB 7:45', rest: 'Controlado' }
+],
+templateKey: 'F'
+}
+};
+return specs[code] || specs['R'];
+}
+
+// ==================== 3. NAVIGATION & RENDER ORCHESTRATION ====================
+function switchTab(tabId) {
+document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+document.getElementById('tab-' + tabId).classList.remove('hidden');
+
+document.querySelectorAll('.nav-btn').forEach(btn => {
+const active = btn.dataset.tab === tabId;
+btn.className = active
+? 'nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold bg-lime/15 text-lime border border-lime/30 transition-all'
+: 'nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-zinc-400 hover:text-white hover:bg-card transition-all';
+});
+
+document.querySelectorAll('.mob-nav-btn').forEach(btn => {
+const active = btn.dataset.tab === tabId;
+btn.className = active
+? 'mob-nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-[11px] font-bold text-lime bg-lime/10 transition'
+: 'mob-nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-[11px] font-medium text-zinc-400 transition';
+});
+
+if (tabId === 'progreso') renderProgressTab();
+if (tabId === 'plan') renderPlanWeek(appState.selectedPlanWeek);
+if (window.lucide) lucide.createIcons();
+}
+
+function showToast(msg) {
+const el = document.getElementById('toast');
+document.getElementById('toast-msg').textContent = msg;
+el.classList.remove('hidden');
+clearTimeout(window._toastTimer);
+window._toastTimer = setTimeout(() => el.classList.add('hidden'), 2800);
+}
+
+// ==================== 4. DASHBOARD (HOY) ====================
+function getActiveDashboardDate() {
+const picker = document.getElementById('today-date-picker');
+return picker && picker.value ? picker.value : getLocalTodayStr();
+}
+
+function resetDateToRealToday() {
+const realToday = getLocalTodayStr();
+document.getElementById('today-date-picker').value = realToday;
+renderDashboard();
+}
+
+function toggleAfternoonShift() {
+appState.afternoonShiftToday = document.getElementById('toggle-afternoon-shift').checked;
+saveState();
+renderDashboard();
+}
+
+function getDailyCheckState(dateStr) {
+if (!appState.dailyChecks[dateStr]) {
+appState.dailyChecks[dateStr] = { meals: {}, waterMl: 0, prehab: { drops: false, thoracic: false } };
+}
+return appState.dailyChecks[dateStr];
+}
+
+function renderDashboard() {
+const dateStr = getActiveDashboardDate();
+const { weekMeta, dayIdx } = getWeekAndDayForDate(dateStr);
+const daysLeft = getDaysUntilRace(dateStr);
+const pctElapsed = Math.min(100, Math.max(4, Math.round(((153 - daysLeft) / 153) * 100)));
+
+document.getElementById('sidebar-days-left').textContent = `${daysLeft} d`;
+document.getElementById('sidebar-progress-bar').style.width = `${pctElapsed}%`;
+document.getElementById('mobile-days-badge').textContent = `${daysLeft} días`;
+document.getElementById('mobile-header-sub').textContent = `Sem ${String(weekMeta.w).padStart(2,'0')} · Sub-1:40`;
+
+const session = getSessionForDay(weekMeta, dayIdx, appState.afternoonShiftToday);
+const shiftLabel = SHIFT_LABELS[weekMeta.pattern];
+
+document.getElementById('today-week-badge').textContent = `Semana ${String(weekMeta.w).padStart(2, '0')} / 22`;
+document.getElementById('today-block-badge').textContent = weekMeta.block;
+document.getElementById('today-shift-badge').textContent = shiftLabel;
+document.getElementById('today-date-title').textContent = capitalize(formatDateES(dateStr));
+document.getElementById('today-coach-note').textContent = `Hito de la semana: ${weekMeta.milestone} · VDOT ref: ${weekMeta.vdot} · Z2: ${weekMeta.z2}/km (132–149 lpm)`;
+
+// Workout Card
+document.getElementById('today-workout-title').textContent = session.name;
+document.getElementById('today-workout-duration').textContent = session.duration;
+document.getElementById('today-workout-location').textContent = session.location;
+document.getElementById('today-workout-objective').textContent = session.objective;
+document.getElementById('today-workout-warmup').textContent = session.warmup;
+document.getElementById('today-workout-cues').textContent = session.cues;
+document.getElementById('today-workout-cooldown').textContent = session.cooldown;
+
+const doneToday = appState.logs.some(l => l.date === dateStr);
+document.getElementById('today-workout-done-badge').classList.toggle('hidden', !doneToday);
+
+const blocksHtml = session.blocks.map((b, i) => `
+<div class="p-3 rounded-xl bg-bg/70 border border-border/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+<div>
+<div class="text-xs font-bold text-white"><span class="text-lime font-mono mr-1.5">${i+1}.</span>${escapeHtml(b.name)}</div>
+<div class="text-xs text-zinc-300 mt-0.5 font-mono">${escapeHtml(b.detail)}</div>
+</div>
+<span class="self-start sm:self-center shrink-0 text-[10px] font-mono px-2 py-0.5 rounded-md bg-surface border border-border text-zinc-400">Desc: ${escapeHtml(b.rest)}</span>
+</div>
+`).join('');
+document.getElementById('today-workout-blocks').innerHTML = blocksHtml;
+
+// Nutrition Card
+const nutri = NUTRITION_PROFILES[session.nutriKey] || NUTRITION_PROFILES.R;
+const checks = getDailyCheckState(dateStr);
+
+document.getElementById('today-nutri-profile').textContent = nutri.name;
+document.getElementById('today-nutri-kcal').textContent = `${nutri.kcal.toLocaleString('es-ES')} kcal`;
+document.getElementById('today-macro-p').textContent = `${nutri.p}g`;
+document.getElementById('today-macro-c').textContent = `${nutri.c}g`;
+document.getElementById('today-macro-ckg').textContent = nutri.cKg;
+document.getElementById('today-macro-g').textContent = `${nutri.g}g`;
+
+// Food safety / Batch cooking tip by weekday
+const batchTips = [
+'Lunes: Arroz cocinado ayer (Tanda A). Enfría rápido <5°C y recaliéntalo 1 sola vez >70°C con unas gotas de agua.',
+'Martes: Último día seguro del arroz de la Tanda A (<48h por Bacillus cereus). Añade el AOVE y frutos secos en frío.',
+'Miércoles: Hoy táper de pasta/legumbres (sin arroz >48h). Por la noche: Tanda B (45 min) para Jueves y Viernes.',
+'Jueves: Arroz fresco cocinado ayer noche (Tanda B). Separa la comida sólida 2.5–3h de la sesión de calidad.',
+'Viernes: Último día de la Tanda B (<48h para el arroz). Hidrata bien antes de la clase/simulación.',
+'Sábado: Día sin entreno. Prioriza proteína (156g) y carbohidratos moderados (349g) para recuperar.',
+'Domingo: Tanda A de Batch Cooking por la tarde (90 min) para dejar listos los tápers de Lun–Mié.'
+];
+document.getElementById('today-batch-text').textContent = batchTips[dayIdx];
+
+const mealsHtml = nutri.meals.map(m => {
+const isChecked = !!checks.meals[m.id];
+return `
+<label class="flex items-start gap-2.5 p-2.5 rounded-xl bg-bg/60 border ${isChecked ? 'border-lime/40 bg-lime/5' : 'border-border'} cursor-pointer transition">
+<input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleDailyCheck('meals', '${m.id}')" class="mt-0.5 accent-lime w-4 h-4 rounded" />
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-2">
+<span class="text-xs font-bold ${isChecked ? 'text-lime line-through' : 'text-zinc-200'}">${escapeHtml(m.label)}</span>
+<span class="text-[10px] font-mono text-zinc-500">${m.time}</span>
+</div>
+<p class="text-[11px] text-zinc-400 leading-snug mt-0.5">${escapeHtml(m.desc)}</p>
+</div>
+</label>
+`;
+}).join('');
+document.getElementById('today-meals-list').innerHTML = mealsHtml;
+
+// Water & Prehab
+const waterMl = checks.waterMl || 0;
+const pctW = Math.min(100, Math.round((waterMl / nutri.water) * 100));
+document.getElementById('today-water-current').textContent = waterMl;
+document.getElementById('today-water-target').textContent = nutri.water;
+document.getElementById('today-water-bar').style.width = `${pctW}%`;
+document.getElementById('today-hydration-tip').textContent = nutri.tip;
+
+document.getElementById('chk-prehab-drops').checked = !!checks.prehab.drops;
+document.getElementById('chk-prehab-thoracic').checked = !!checks.prehab.thoracic;
+
+if (window.lucide) lucide.createIcons();
+}
+
+function toggleDailyCheck(category, key) {
+const dateStr = getActiveDashboardDate();
+const checks = getDailyCheckState(dateStr);
+checks[category][key] = !checks[category][key];
+saveState();
+renderDashboard();
+}
+
+function addWater(delta) {
+const dateStr = getActiveDashboardDate();
+const checks = getDailyCheckState(dateStr);
+checks.waterMl = Math.max(0, (checks.waterMl || 0) + delta);
+saveState();
+renderDashboard();
+}
+
+// ==================== 5. WORKOUT LOGGER (HEVY + STRAVA) ====================
+function openTodayInLogger() {
+const dateStr = getActiveDashboardDate();
+const { weekMeta, dayIdx } = getWeekAndDayForDate(dateStr);
+const session = getSessionForDay(weekMeta, dayIdx, appState.afternoonShiftToday);
+
+document.getElementById('log-date').value = dateStr;
+document.getElementById('log-template-select').value = session.templateKey;
+loadLoggerTemplate(session.templateKey, weekMeta);
+document.getElementById('log-title').value = session.name;
+switchTab('logger');
+showToast('Plantilla de hoy cargada en el Logger');
+}
+
+function loadLoggerTemplate(key, customWeekMeta = null) {
+const dateStr = document.getElementById('log-date').value || getLocalTodayStr();
+const weekMeta = customWeekMeta || getWeekAndDayForDate(dateStr).weekMeta;
+currentLoggerExercises = [];
+currentLoggerRuns = [];
+
+if (key === 'A') {
+document.getElementById('log-title').value = `Sesión A · Fuerza Máxima (Sem ${weekMeta.w})`;
+const sqKg = parseFloat(weekMeta.squatKg) || 60;
+const rdlKg = parseFloat(weekMeta.rdlKg) || 75;
+currentLoggerExercises = [
+{ name: 'Sentadilla Trasera (Barra)', sets: [{ kg: sqKg, reps: 5, rpe: 8, done: false }, { kg: sqKg, reps: 5, rpe: 8, done: false }, { kg: sqKg, reps: 5, rpe: 8, done: false }, { kg: sqKg, reps: 5, rpe: 8.5, done: false }] },
+{ name: 'Peso Muerto Rumano (RDL)', sets: [{ kg: rdlKg, reps: 5, rpe: 8, done: false }, { kg: rdlKg, reps: 5, rpe: 8, done: false }, { kg: rdlKg, reps: 5, rpe: 8, done: false }, { kg: rdlKg, reps: 5, rpe: 8, done: false }] },
+{ name: 'Zancada Búlgara (Mancuernas)', sets: [{ kg: 14, reps: 10, rpe: 8, done: false }, { kg: 14, reps: 10, rpe: 8, done: false }, { kg: 14, reps: 10, rpe: 8, done: false }] },
+{ name: 'Press Militar (Barra)', sets: [{ kg: 37.5, reps: 8, rpe: 8, done: false }, { kg: 37.5, reps: 8, rpe: 8, done: false }, { kg: 37.5, reps: 8, rpe: 8, done: false }] },
+{ name: 'Farmers Carry (2x26–30 kg)', sets: [{ kg: 56, reps: '45m', rpe: 8, done: false }, { kg: 56, reps: '45m', rpe: 8, done: false }, { kg: 56, reps: '45m', rpe: 8, done: false }] },
+{ name: 'Elevación Talón 1 Pierna', sets: [{ kg: 18, reps: 12, rpe: 8, done: false }, { kg: 18, reps: 12, rpe: 8, done: false }, { kg: 18, reps: 12, rpe: 8, done: false }, { kg: 18, reps: 12, rpe: 8, done: false }] }
+];
+} else if (key === 'B') {
+document.getElementById('log-title').value = `Sesión B · HYROX Libre (Sem ${weekMeta.w})`;
+const pushKg = parseInt(weekMeta.sledPush) || 152;
+const pullKg = parseInt(weekMeta.sledPull) || 103;
+currentLoggerExercises = [
+{ name: `Sled Push (Tara ${appState.sledTare}kg + discos)`, sets: [{ kg: pushKg, reps: '25m', rpe: 8, done: false }, { kg: pushKg, reps: '25m', rpe: 8, done: false }, { kg: pushKg, reps: '25m', rpe: 8.5, done: false }, { kg: pushKg, reps: '25m', rpe: 8.5, done: false }] },
+{ name: `Sled Pull Walking Back (Total)`, sets: [{ kg: pullKg, reps: '25m', rpe: 8, done: false }, { kg: pullKg, reps: '25m', rpe: 8, done: false }, { kg: pullKg, reps: '25m', rpe: 8.5, done: false }, { kg: pullKg, reps: '25m', rpe: 8.5, done: false }] },
+{ name: 'Wall Balls (6 kg @ 3.00m)', sets: [{ kg: 6, reps: 25, rpe: 8, done: false }, { kg: 6, reps: 25, rpe: 8, done: false }, { kg: 6, reps: 25, rpe: 8.5, done: false }] }
+];
+currentLoggerRuns = [
+{ label: 'SkiErg 3 x 500m (talones planos)', km: 1.5, time: '07:00', hr: 158 },
+{ label: 'Carrera Comprometida Pos-Trineo', km: 2.0, time: '10:40', hr: 168 }
+];
+} else if (key === 'C') {
+document.getElementById('log-title').value = `Sesión C · Clase HYROX Gold's Gym`;
+currentLoggerExercises = [
+{ name: 'DB Thrusters (2x7 kg / Warm-up o Estación)', sets: [{ kg: 14, reps: 15, rpe: 7, done: false }, { kg: 14, reps: 15, rpe: 7, done: false }] },
+{ name: 'Sled Push (Clase)', sets: [{ kg: 152, reps: '50m', rpe: 8, done: false }] },
+{ name: 'Wall Balls (6 kg)', sets: [{ kg: 6, reps: 25, rpe: 8, done: false }, { kg: 6, reps: 25, rpe: 8, done: false }] }
+];
+currentLoggerRuns = [
+{ label: 'Carrera acumulada en clase (aprox)', km: 3.0, time: '16:30', hr: 162 }
+];
+} else if (key === 'D') {
+document.getElementById('log-title').value = `Sesión D · Carrera Z2 + Sóleo/Core`;
+currentLoggerRuns = [
+{ label: 'Rodaje Continuo Z2 (132–149 lpm)', km: 6.5, time: '44:00', hr: 142 }
+];
+currentLoggerExercises = [
+{ name: 'Elevación Talón Sentado (Sóleo)', sets: [{ kg: 30, reps: 15, rpe: 8, done: false }, { kg: 30, reps: 15, rpe: 8, done: false }, { kg: 30, reps: 15, rpe: 8, done: false }, { kg: 30, reps: 15, rpe: 8, done: false }] },
+{ name: 'Pallof Press (Antirotación)', sets: [{ kg: 12, reps: 12, rpe: 7, done: false }, { kg: 12, reps: 12, rpe: 7, done: false }, { kg: 12, reps: 12, rpe: 7, done: false }] },
+{ name: 'Dead Bug Lastrado (Disco)', sets: [{ kg: 5, reps: 10, rpe: 7, done: false }, { kg: 5, reps: 10, rpe: 7, done: false }, { kg: 5, reps: 10, rpe: 7, done: false }] }
+];
+} else if (key === 'E') {
+document.getElementById('log-title').value = `Sesión E · Calidad Carrera (LT2/VO2)`;
+currentLoggerRuns = [
+{ label: 'Calentamiento + Vuelta Calma Z1/Z2', km: 2.5, time: '17:00', hr: 138 },
+{ label: 'Bloque Principal (Umbral / Intervalos)', km: 4.0, time: '21:20', hr: 169 }
+];
+} else if (key === 'F') {
+document.getElementById('log-title').value = `Sesión F · Tirada / Simulación`;
+currentLoggerRuns = [
+{ label: 'Tirada Larga Z2 / Simulación', km: Math.max(8, Math.round(weekMeta.km * 0.5)), time: '55:00', hr: 145 }
+];
+}
+renderLogger();
+}
+
+function addSelectedExercise() {
+const sel = document.getElementById('quick-add-exercise-select');
+if (!sel.value) return;
+currentLoggerExercises.push({
+name: sel.value,
+sets: [{ kg: sel.value.includes('7kg') ? 14 : 20, reps: 10, rpe: 8, done: false }]
+});
+sel.value = '';
+renderLogger();
+}
+
+function addCustomExercise() {
+const name = prompt('Nombre del ejercicio (ej. Prensa Pure Kraft, Curl Femoral...):');
+if (!name || !name.trim()) return;
+currentLoggerExercises.push({
+name: name.trim(),
+sets: [{ kg: 20, reps: 10, rpe: 8, done: false }]
+});
+renderLogger();
+}
+
+function removeLoggerExercise(idx) {
+currentLoggerExercises.splice(idx, 1);
+renderLogger();
+}
+
+function addSetToExercise(exIdx) {
+const sets = currentLoggerExercises[exIdx].sets;
+const last = sets[sets.length - 1] || { kg: 20, reps: 10, rpe: 8, done: false };
+sets.push({ kg: last.kg, reps: last.reps, rpe: last.rpe, done: false });
+renderLogger();
+}
+
+function removeSetFromExercise(exIdx, setIdx) {
+currentLoggerExercises[exIdx].sets.splice(setIdx, 1);
+renderLogger();
+}
+
+function updateSetField(exIdx, setIdx, field, value) {
+const set = currentLoggerExercises[exIdx].sets[setIdx];
+if (field === 'done') {
+set.done = !set.done;
+renderLogger();
+} else if (field === 'kg' || field === 'rpe') {
+set[field] = parseFloat(value) || 0;
+} else {
+set[field] = value;
+}
+}
+
+function addRunSegment() {
+currentLoggerRuns.push({ label: 'Tramo Carrera / Ergómetro', km: 1.0, time: '05:30', hr: 155 });
+renderLogger();
+}
+
+function removeRunSegment(idx) {
+currentLoggerRuns.splice(idx, 1);
+renderLogger();
+}
+
+function updateRunField(idx, field, val) {
+currentLoggerRuns[idx][field] = (field === 'km' || field === 'hr') ? (parseFloat(val) || 0) : val;
+if (field === 'km' || field === 'time' || field === 'hr') {
+renderLogger();
+}
+}
+
+function calcPace(km, timeStr) {
+if (!km || km <= 0 || !timeStr || !timeStr.includes(':')) return '--:--/km';
+const parts = timeStr.split(':').map(Number);
+if (parts.some(isNaN)) return '--:--/km';
+const totalSec = parts.length === 3 ? (parts[0]*3600 + parts[1]*60 + parts[2]) : (parts[0]*60 + parts[1]);
+const secPerKm = Math.round(totalSec / km);
+const m = Math.floor(secPerKm / 60);
+const s = secPerKm % 60;
+return `${m}:${String(s).padStart(2, '0')}/km`;
+}
+
+function getKarvonenZoneBadge(hr) {
+if (!hr || hr < 100) return { label: '—', cls: 'bg-zinc-800 text-zinc-400' };
+if (hr < 132) return { label: 'Z1 Recup.', cls: 'bg-zinc-700 text-zinc-200' };
+if (hr <= 149) return { label: 'Z2 Base (<LT1)', cls: 'bg-cyan/20 text-cyan border border-cyan/40' };
+if (hr <= 163) return { label: 'Z3 Tempo', cls: 'bg-lime/20 text-lime border border-lime/40' };
+if (hr <= 175) return { label: 'Z4 Umbral LT2', cls: 'bg-amber-500/20 text-amber-400 border border-amber-500/40' };
+return { label: 'Z5 VO2max', cls: 'bg-strava/20 text-strava border border-strava/40' };
+}
+
+function renderLogger() {
+const exContainer = document.getElementById('logger-exercises-container');
+if (currentLoggerExercises.length === 0) {
+exContainer.innerHTML = `<div class="text-center py-8 text-xs text-zinc-500 border border-dashed border-border rounded-xl">No hay ejercicios de fuerza/HYROX añadidos. Usa el selector o carga una plantilla.</div>`;
+} else {
+exContainer.innerHTML = currentLoggerExercises.map((ex, exIdx) => `
+<div class="bg-bg/80 border border-border rounded-xl p-3.5 space-y-2.5">
+<div class="flex items-center justify-between gap-2">
+<div class="font-bold text-sm text-lime">${escapeHtml(ex.name)}</div>
+<button onclick="removeLoggerExercise(${exIdx})" class="text-zinc-500 hover:text-red-400 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+</div>
+<div class="grid grid-cols-12 gap-2 text-[10px] font-mono uppercase text-zinc-500 px-1">
+<div class="col-span-2">Serie</div>
+<div class="col-span-3">Peso (kg)</div>
+<div class="col-span-3">Reps / Dist</div>
+<div class="col-span-2">RPE</div>
+<div class="col-span-2 text-right">Hecho</div>
+</div>
+<div class="space-y-1.5">
+${ex.sets.map((s, sIdx) => `
+<div class="grid grid-cols-12 gap-2 items-center p-1.5 rounded-lg ${s.done ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-surface border border-border/60'}">
+<div class="col-span-2 flex items-center gap-1 font-mono text-xs text-zinc-400">
+<span>#${sIdx + 1}</span>
+${ex.sets.length > 1 ? `<button onclick="removeSetFromExercise(${exIdx}, ${sIdx})" class="text-zinc-600 hover:text-red-400">×</button>` : ''}
+</div>
+<div class="col-span-3">
+<input type="number" step="0.5" inputmode="decimal" value="${s.kg}" onchange="updateSetField(${exIdx}, ${sIdx}, 'kg', this.value)" class="w-full bg-bg border border-border rounded-lg px-2 py-1 text-xs font-mono text-white text-center focus:border-lime focus:outline-none" />
+</div>
+<div class="col-span-3">
+<input type="text" value="${escapeHtml(String(s.reps))}" onchange="updateSetField(${exIdx}, ${sIdx}, 'reps', this.value)" class="w-full bg-bg border border-border rounded-lg px-2 py-1 text-xs font-mono text-white text-center focus:border-lime focus:outline-none" />
+</div>
+<div class="col-span-2">
+<input type="number" step="0.5" min="1" max="10" inputmode="decimal" value="${s.rpe}" onchange="updateSetField(${exIdx}, ${sIdx}, 'rpe', this.value)" class="w-full bg-bg border border-border rounded-lg px-1.5 py-1 text-xs font-mono text-zinc-300 text-center focus:border-lime focus:outline-none" />
+</div>
+<div class="col-span-2 flex justify-end">
+<button onclick="updateSetField(${exIdx}, ${sIdx}, 'done')" class="w-8 h-7 rounded-lg flex items-center justify-center transition ${s.done ? 'bg-emerald-500 text-black font-bold' : 'bg-bg border border-border text-zinc-400 hover:border-lime'}">
+<i data-lucide="check" class="w-4 h-4"></i>
+</button>
+</div>
+</div>
+`).join('')}
+</div>
+<button onclick="addSetToExercise(${exIdx})" class="w-full py-1.5 rounded-lg bg-surface hover:bg-zinc-800 border border-border text-xs font-medium text-zinc-300 transition">+ Añadir Serie</button>
+</div>
+`).join('');
+}
+
+const runContainer = document.getElementById('logger-runs-container');
+if (currentLoggerRuns.length === 0) {
+runContainer.innerHTML = `<div class="text-center py-6 text-xs text-zinc-500 border border-dashed border-border rounded-xl">Sin tramos de carrera o ergómetro en esta sesión.</div>`;
+} else {
+runContainer.innerHTML = currentLoggerRuns.map((r, rIdx) => {
+const pace = calcPace(r.km, r.time);
+const z = getKarvonenZoneBadge(r.hr);
+return `
+<div class="bg-bg/80 border border-border rounded-xl p-3.5 space-y-2.5">
+<div class="flex items-center justify-between gap-2">
+<input type="text" value="${escapeHtml(r.label)}" onchange="updateRunField(${rIdx}, 'label', this.value)" class="bg-transparent font-bold text-sm text-white focus:outline-none border-b border-transparent focus:border-strava flex-1" />
+<span class="text-[10px] font-mono px-2 py-0.5 rounded-full ${z.cls}">${z.label}</span>
+<button onclick="removeRunSegment(${rIdx})" class="text-zinc-500 hover:text-red-400 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+<div>
+<label class="block text-[10px] text-zinc-500 uppercase">Distancia (km)</label>
+<input type="number" step="0.1" inputmode="decimal" value="${r.km}" onchange="updateRunField(${rIdx}, 'km', this.value)" class="w-full bg-surface border border-border rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:border-strava focus:outline-none" />
+</div>
+<div>
+<label class="block text-[10px] text-zinc-500 uppercase">Tiempo (mm:ss)</label>
+<input type="text" value="${escapeHtml(r.time)}" onchange="updateRunField(${rIdx}, 'time', this.value)" class="w-full bg-surface border border-border rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:border-strava focus:outline-none" />
+</div>
+<div>
+<label class="block text-[10px] text-zinc-500 uppercase">FC Media (lpm)</label>
+<input type="number" inputmode="numeric" value="${r.hr}" onchange="updateRunField(${rIdx}, 'hr', this.value)" class="w-full bg-surface border border-border rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:border-strava focus:outline-none" />
+</div>
+<div>
+<label class="block text-[10px] text-zinc-500 uppercase">Ritmo Calculado</label>
+<div class="w-full bg-bg border border-border rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-strava">${pace}</div>
+</div>
+</div>
+</div>
+`;
+}).join('');
+}
+if (window.lucide) lucide.createIcons();
+}
+
+function saveWorkoutLog() {
+const dateStr = document.getElementById('log-date').value || getLocalTodayStr();
+const title = document.getElementById('log-title').value.trim() || 'Entrenamiento Híbrido';
+const durationMin = parseInt(document.getElementById('log-duration-min').value) || Math.max(20, Math.round(timerSeconds / 60)) || 65;
+const rpe = parseInt(document.getElementById('log-rpe').value) || 7;
+const calves = parseInt(document.getElementById('log-calves').value) || 0;
+const flato = parseInt(document.getElementById('log-flato').value) || 0;
+const notes = document.getElementById('log-notes').value.trim();
+
+if (currentLoggerExercises.length === 0 && currentLoggerRuns.length === 0) {
+showToast('Añade al menos un ejercicio o tramo de carrera antes de guardar.');
+return;
+}
+
+// Update PRs automatically if lifted heavier on core lifts
+currentLoggerExercises.forEach(ex => {
+const doneSets = ex.sets.filter(s => s.done);
+if (!doneSets.length) return;
+const maxSet = doneSets.reduce((a, b) => (b.kg > a.kg ? b : a), doneSets[0]);
+const repsNum = parseInt(maxSet.reps);
+if (ex.name.includes('Sentadilla') && maxSet.kg > 0 && repsNum > 0) {
+const e1rm = (maxSet.kg * (1 + repsNum / 30)).toFixed(1);
+const cur = parseFloat(appState.prs['Sentadilla 1RM est.']) || 0;
+if (parseFloat(e1rm) > cur) appState.prs['Sentadilla 1RM est.'] = `${e1rm} kg (${maxSet.kg}×${repsNum}) 🔥`;
+}
+if (ex.name.includes('RDL') && maxSet.kg > 0 && repsNum > 0) {
+const e1rm = (maxSet.kg * (1 + repsNum / 30)).toFixed(1);
+const cur = parseFloat(appState.prs['RDL 1RM est.']) || 0;
+if (parseFloat(e1rm) > cur) appState.prs['RDL 1RM est.'] = `${e1rm} kg (${maxSet.kg}×${repsNum}) 🔥`;
+}
+});
+
+const runsComputed = currentLoggerRuns.map(r => ({ ...r, pace: calcPace(r.km, r.time) }));
+const logEntry = {
+id: 'log-' + Date.now(),
+date: dateStr,
+title,
+type: document.getElementById('log-template-select').value,
+durationMin,
+rpe,
+calves,
+flato,
+notes,
+exercises: JSON.parse(JSON.stringify(currentLoggerExercises)),
+runs: runsComputed
+};
+
+appState.logs.unshift(logEntry);
+saveState();
+resetTimer();
+renderDashboard();
+showToast('Entrenamiento guardado y métricas actualizadas');
+switchTab('progreso');
+}
+
+// Timers
+function toggleTimer() {
+const btn = document.getElementById('logger-timer-btn');
+if (timerRunning) {
+clearInterval(timerInterval);
+timerRunning = false;
+btn.textContent = 'Reanudar';
+} else {
+timerRunning = true;
+btn.textContent = 'Pausar';
+timerInterval = setInterval(() => {
+timerSeconds++;
+const h = String(Math.floor(timerSeconds / 3600)).padStart(2, '0');
+const m = String(Math.floor((timerSeconds % 3600) / 60)).padStart(2, '0');
+const s = String(timerSeconds % 60).padStart(2, '0');
+document.getElementById('logger-timer-display').textContent = `${h}:${m}:${s}`;
+}, 1000);
+}
+}
+
+function resetTimer() {
+clearInterval(timerInterval);
+timerRunning = false;
+timerSeconds = 0;
+document.getElementById('logger-timer-display').textContent = '00:00:00';
+document.getElementById('logger-timer-btn').textContent = 'Iniciar';
+}
+
+function startRestCountdown(sec) {
+clearInterval(restInterval);
+const pill = document.getElementById('rest-countdown-pill');
+pill.classList.remove('hidden');
+let left = sec;
+const updatePill = () => {
+const m = Math.floor(left / 60);
+const s = String(left % 60).padStart(2, '0');
+pill.textContent = `Descanso: ${m}:${s}`;
+};
+updatePill();
+restInterval = setInterval(() => {
+left--;
+if (left <= 0) {
+clearInterval(restInterval);
+pill.textContent = '¡Listo! Siguiente serie';
+setTimeout(() => pill.classList.add('hidden'), 3500);
+} else {
+updatePill();
+}
+}, 1000);
+}
+
+// ==================== 6. PLANIFICACIÓN SEMANAL ====================
+function initPlanSelector() {
+const sel = document.getElementById('plan-week-selector');
+sel.innerHTML = WEEKS_META.map(w => `<option value="${w.w}">Sem ${String(w.w).padStart(2,'0')} (${w.start.slice(5).replace('-','/')} – ${w.end.slice(5).replace('-','/')})</option>`).join('');
+const { weekMeta } = getWeekAndDayForDate(getLocalTodayStr());
+appState.selectedPlanWeek = weekMeta.w;
+sel.value = weekMeta.w;
+}
+
+function changePlanWeek(delta) {
+const next = Math.min(22, Math.max(1, appState.selectedPlanWeek + delta));
+appState.selectedPlanWeek = next;
+document.getElementById('plan-week-selector').value = next;
+renderPlanWeek(next);
+}
+
+function setWeekPriorityFilter(days) {
+appState.weekPriorityFilter = days;
+saveState();
+renderPlanWeek(appState.selectedPlanWeek);
+}
+
+function renderPlanWeek(weekNum) {
+appState.selectedPlanWeek = weekNum;
+const wm = WEEKS_META[weekNum - 1];
+document.getElementById('plan-week-shift').textContent = SHIFT_LABELS[wm.pattern];
+document.getElementById('plan-week-run').textContent = `${wm.km} km · Z2 ${wm.z2} · LT2 ${wm.lt2}`;
+document.getElementById('plan-week-strength').textContent = `${wm.pct1RM}% (${wm.squatKg} kg) · Push ${wm.sledPush}`;
+document.getElementById('plan-week-milestone').textContent = wm.milestone;
+
+document.querySelectorAll('.filter-days-btn').forEach(btn => {
+const active = parseInt(btn.dataset.filter) === appState.weekPriorityFilter;
+btn.className = active
+? 'filter-days-btn px-3 py-1 rounded-lg text-xs font-bold bg-lime text-black transition'
+: 'filter-days-btn px-3 py-1 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition';
+});
+
+const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+const startDt = parseDateLocal(wm.start);
+
+// Priority filtering for complicated weeks (keeps high-transfer sessions)
+const f = appState.weekPriorityFilter;
+const cardsHtml = dayNames.map((dName, dIdx) => {
+const dDt = new Date(startDt);
+dDt.setDate(startDt.getDate() + dIdx);
+const dStr = `${dDt.getFullYear()}-${String(dDt.getMonth()+1).padStart(2,'0')}-${String(dDt.getDate()).padStart(2,'0')}`;
+const sess = getSessionForDay(wm, dIdx, false);
+const nutri = NUTRITION_PROFILES[sess.nutriKey] || NUTRITION_PROFILES.R;
+const isLogged = appState.logs.some(l => l.date === dStr);
+
+let dimmed = false;
+if (f === 4 && sess.code === 'D') dimmed = true;
+if (f === 3 && (sess.code === 'D' || (dIdx === 0 && sess.code === 'C'))) dimmed = true;
+if (f === 2 && (sess.code === 'D' || sess.code === 'C' || sess.code === 'F')) dimmed = true;
+
+const borderCls = sess.code === 'RACE' ? 'border-lime shadow-lg shadow-lime/10' : (isLogged ? 'border-emerald-500/50' : 'border-border');
+
+return `
+<div class="bg-card border ${borderCls} rounded-2xl p-3.5 flex flex-col justify-between ${dimmed ? 'opacity-35 grayscale' : ''} transition">
+<div>
+<div class="flex items-center justify-between text-[11px] font-mono text-zinc-400 mb-1.5">
+<span>${dName}</span>
+<span>${String(dDt.getDate()).padStart(2,'0')}/${String(dDt.getMonth()+1).padStart(2,'0')}</span>
+</div>
+<div class="text-xs font-extrabold text-white leading-snug mb-1">${escapeHtml(sess.name)}</div>
+<div class="text-[11px] text-zinc-400 mb-2">${escapeHtml(sess.duration)}</div>
+<div class="space-y-1 mb-3">
+${sess.blocks.slice(0, 2).map(b => `<div class="text-[10px] text-zinc-300 bg-bg/70 px-2 py-1 rounded border border-border/50 truncate" title="${escapeHtml(b.detail)}">${escapeHtml(b.name)}</div>`).join('')}
+</div>
+</div>
+<div class="pt-2 border-t border-border/60 space-y-2">
+<div class="flex items-center justify-between text-[10px] font-mono">
+<span class="text-lime">${nutri.kcal} kcal</span>
+<span class="text-zinc-400">${nutri.c}g CH</span>
+</div>
+<button onclick="jumpToDate('${dStr}')" class="w-full py-1.5 rounded-lg bg-surface hover:bg-zinc-800 border border-border text-[11px] font-semibold text-zinc-200 transition">
+${isLogged ? '✓ Completado' : 'Ver en Hoy'}
+</button>
+</div>
+</div>
+`;
+}).join('');
+
+document.getElementById('plan-week-grid').innerHTML = cardsHtml;
+if (window.lucide) lucide.createIcons();
+}
+
+function jumpToDate(dateStr) {
+document.getElementById('today-date-picker').value = dateStr;
+renderDashboard();
+switchTab('hoy');
+}
+
+// ==================== 7. HISTORIAL, PRs & RADAR CHART ====================
+function renderProgressTab() {
+document.getElementById('setting-sled-tare').value = appState.sledTare;
+
+// Render PR cards
+document.getElementById('prs-grid').innerHTML = Object.entries(appState.prs).map(([k, v]) => `
+<div class="bg-bg/80 border border-border rounded-xl p-3">
+<div class="text-[10px] text-zinc-400 uppercase font-medium">${escapeHtml(k)}</div>
+<div class="text-sm font-extrabold font-mono text-white mt-1">${escapeHtml(v)}</div>
+</div>
+`).join('');
+
+// Render Splits Table
+document.getElementById('splits-comparison-body').innerHTML = BARCELONA_SPLITS.map(s => `
+<tr class="${s.highlight ? 'bg-lime/10 font-bold text-white' : 'text-zinc-300'}">
+<td class="py-2 pr-2">${escapeHtml(s.name)}</td>
+<td class="py-2 px-2 text-zinc-400">${s.bcn}</td>
+<td class="py-2 px-2 text-lime">${s.target}</td>
+<td class="py-2 pl-2 text-right ${s.diff.startsWith('-') ? 'text-emerald-400' : 'text-zinc-400'}">${s.diff}</td>
+</tr>
+`).join('');
+
+// Render SVG Radar Chart (9 axes matching HYRESULT)
+renderRadarChart();
+
+// Render Workout History
+const listEl = document.getElementById('history-logs-list');
+if (appState.logs.length === 0) {
+listEl.innerHTML = `<div class="text-center py-8 text-xs text-zinc-500">Todavía no has registrado entrenamientos.</div>`;
+} else {
+listEl.innerHTML = appState.logs.map((log, idx) => {
+const totalKm = (log.runs || []).reduce((acc, r) => acc + (parseFloat(r.km) || 0), 0);
+const totalSets = (log.exercises || []).reduce((acc, ex) => acc + ex.sets.filter(s => s.done).length, 0);
+return `
+<div class="bg-bg/80 border border-border rounded-xl p-4 space-y-2.5">
+<div class="flex flex-wrap items-start justify-between gap-2">
+<div>
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-surface border border-border text-lime">${escapeHtml(log.date)}</span>
+<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-strava/15 text-strava font-bold">${log.durationMin} min · RPE ${log.rpe}</span>
+</div>
+<h4 class="text-sm font-bold text-white mt-1">${escapeHtml(log.title)}</h4>
+</div>
+<div class="flex items-center gap-3 text-[11px] font-mono text-zinc-400">
+<span>Gemelos: <strong class="${log.calves > 5 ? 'text-strava' : 'text-emerald-400'}">${log.calves}/10</strong></span>
+<span>Flato: <strong class="${log.flato > 3 ? 'text-strava' : 'text-emerald-400'}">${log.flato}/10</strong></span>
+${idx > 0 ? `<button onclick="deleteLog('${log.id}')" class="text-zinc-500 hover:text-red-400" title="Eliminar"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : ''}
+</div>
+</div>
+
+<div class="flex flex-wrap gap-2 text-[11px]">
+${totalKm > 0 ? `<span class="px-2.5 py-1 rounded-lg bg-surface border border-border font-mono text-cyan">🏃 ${totalKm.toFixed(1)} km</span>` : ''}
+${totalSets > 0 ? `<span class="px-2.5 py-1 rounded-lg bg-surface border border-border font-mono text-lime">🏋️ ${totalSets} series completadas</span>` : ''}
+${(log.runs || []).map(r => `<span class="px-2.5 py-1 rounded-lg bg-surface border border-border font-mono text-zinc-300">${escapeHtml(r.label)}: ${r.pace} (${r.hr} lpm)</span>`).join('')}
+</div>
+
+${log.notes ? `<p class="text-xs text-zinc-400 italic border-l-2 border-border pl-2.5">${escapeHtml(log.notes)}</p>` : ''}
+</div>
+`;
+}).join('');
+}
+if (window.lucide) lucide.createIcons();
+}
+
+function renderRadarChart() {
+const axes = [
+{ label: 'Running', bcn: 32, tgt: 72 },
+{ label: 'SkiErg', bcn: 50, tgt: 76 },
+{ label: 'Sled Push', bcn: 24, tgt: 70 },
+{ label: 'Sled Pull', bcn: 18, tgt: 72 },
+{ label: 'Burpee BJ', bcn: 38, tgt: 70 },
+{ label: 'Row', bcn: 44, tgt: 74 },
+{ label: 'Farmers C.', bcn: 84, tgt: 88 },
+{ label: 'S. Lunges', bcn: 36, tgt: 70 },
+{ label: 'Wall Balls', bcn: 22, tgt: 72 }
+];
+const cx = 160, cy = 155, R = 105;
+const n = axes.length;
+const point = (idx, pct) => {
+const angle = (-Math.PI / 2) + (2 * Math.PI * idx) / n;
+const r = (pct / 100) * R;
+return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
+};
+
+let gridSvg = '';
+[25, 50, 75, 100].forEach(ring => {
+const pts = axes.map((_, i) => point(i, ring).join(',')).join(' ');
+gridSvg += `<polygon points="${pts}" fill="none" stroke="#272c3d" stroke-width="1" />`;
+});
+axes.forEach((ax, i) => {
+const [x, y] = point(i, 100);
+const [lx, ly] = point(i, 122);
+gridSvg += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#272c3d" stroke-width="1" />`;
+gridSvg += `<text x="${lx}" y="${ly}" fill="#a1a1aa" font-size="9.5" font-family="Inter" font-weight="600" text-anchor="middle" dominant-baseline="middle">${ax.label}</text>`;
+});
+
+const bcnPts = axes.map((ax, i) => point(i, ax.bcn).join(',')).join(' ');
+const tgtPts = axes.map((ax, i) => point(i, ax.tgt).join(',')).join(' ');
+
+document.getElementById('radar-chart-container').innerHTML = `
+<svg viewBox="0 0 320 310" class="w-full h-auto overflow-visible">
+${gridSvg}
+<polygon points="${tgtPts}" fill="rgba(163, 230, 53, 0.22)" stroke="#a3e635" stroke-width="2" />
+<polygon points="${bcnPts}" fill="rgba(250, 204, 21, 0.28)" stroke="#facc15" stroke-width="2" />
+</svg>
+`;
+}
+
+function updateSledTare(val) {
+appState.sledTare = parseFloat(val) || 35;
+saveState();
+renderDashboard();
+showToast(`Tara trineo actualizada a ${appState.sledTare} kg`);
+}
+
+function deleteLog(id) {
+if (!confirm('¿Eliminar este registro del historial?')) return;
+appState.logs = appState.logs.filter(l => l.id !== id);
+saveState();
+renderProgressTab();
+renderDashboard();
+}
+
+function exportData() {
+const blob = new Blob([JSON.stringify(appState, null, 2)], { type: 'application/json' });
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = `hyrox-malaga-backup-${getLocalTodayStr()}.json`;
+a.click();
+URL.revokeObjectURL(url);
+showToast('Copia JSON descargada');
+}
+
+function importData(e) {
+const file = e.target.files[0];
+if (!file) return;
+const reader = new FileReader();
+reader.onload = ev => {
+try {
+const parsed = JSON.parse(ev.target.result);
+appState = { ...JSON.parse(JSON.stringify(DEFAULT_STATE)), ...parsed };
+saveState();
+renderDashboard();
+renderProgressTab();
+showToast('Datos importados correctamente');
+} catch {
+alert('Archivo JSON no válido.');
+}
+};
+reader.readAsText(file);
+}
+
+// ==================== 8. UTILS & BOOT ====================
+function escapeHtml(str) {
+return String(str)
+.replace(/&/g, '&amp;')
+.replace(/</g, '&lt;')
+.replace(/>/g, '&gt;')
+.replace(/"/g, '&quot;')
+.replace(/'/g, '&#39;');
+}
+
+function capitalize(str) {
+return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+const todayStr = getLocalTodayStr();
+const picker = document.getElementById('today-date-picker');
+picker.value = todayStr;
+picker.addEventListener('change', renderDashboard);
+
+document.getElementById('log-date').value = todayStr;
+document.getElementById('toggle-afternoon-shift').checked = !!appState.afternoonShiftToday;
+
+initPlanSelector();
+renderDashboard();
+loadLoggerTemplate(getSessionForDay(getWeekAndDayForDate(todayStr).weekMeta, getWeekAndDayForDate(todayStr).dayIdx, appState.afternoonShiftToday).templateKey);
+switchTab('hoy');
+});
+</script>
+</body>
+</html>
