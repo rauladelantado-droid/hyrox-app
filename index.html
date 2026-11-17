@@ -268,152 +268,210 @@
 
     <!-- ==================== TAB 2: ENTRENO ACTIVO / LOGGER ==================== -->
     <section id="tab-logger" class="tab-view hidden space-y-5">
-      <!-- Top Control Bar -->
-      <div class="glass-card rounded-2xl p-4 space-y-3">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-strava">Entreno Activo</span>
-              <span class="px-2 py-0.5 rounded bg-obsidian border border-stroke text-[11px] font-mono text-lime" id="elapsed-timer-display">00:00</span>
+
+      <!-- VISTA PREVIA CUANDO NO HAY ENTRENO INICIADO (INICIO MANUAL) -->
+      <div id="logger-idle-view" class="hidden space-y-5">
+        <div class="glass-card rounded-2xl p-6 md:p-8 text-center space-y-4">
+          <div class="w-14 h-14 rounded-2xl bg-strava/15 border border-strava/40 flex items-center justify-center text-strava mx-auto">
+            <i data-lucide="play-circle" class="w-8 h-8"></i>
+          </div>
+          <div class="max-w-lg mx-auto space-y-1.5">
+            <span class="text-xs font-bold uppercase tracking-wider text-strava" id="idle-session-badge">Sesión programada para hoy</span>
+            <h2 class="text-xl md:text-2xl font-extrabold text-white" id="idle-session-title">--</h2>
+            <p class="text-xs text-slate-400" id="idle-session-sub">El cronómetro y el registro comenzarán únicamente cuando pulses empezar.</p>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <button onclick="startTodayWorkout()" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-strava hover:bg-orange-600 text-white font-extrabold text-sm shadow-lg shadow-strava/25 flex items-center justify-center gap-2 transition active:scale-95">
+              <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+              Empezar Entreno Programado
+            </button>
+            <button onclick="startCustomEmptyWorkout()" class="w-full sm:w-auto px-5 py-3.5 rounded-xl bg-elevated hover:bg-stroke border border-stroke text-slate-200 font-bold text-sm flex items-center justify-center gap-2 transition">
+              <i data-lucide="plus-circle" class="w-4 h-4 text-lime"></i>
+              Empezar Entreno Libre / Personalizado
+            </button>
+          </div>
+
+          <div class="pt-4 border-t border-stroke max-w-xl mx-auto">
+            <span class="text-[11px] font-semibold uppercase text-slate-400 block mb-2.5">O iniciar directamente desde otra plantilla:</span>
+            <div class="flex flex-wrap justify-center gap-2">
+              <button onclick="startTemplateWorkout('A')" class="px-3 py-1.5 rounded-xl bg-obsidian hover:bg-elevated border border-stroke text-xs font-semibold text-lime">A · Fuerza</button>
+              <button onclick="startTemplateWorkout('B')" class="px-3 py-1.5 rounded-xl bg-obsidian hover:bg-elevated border border-stroke text-xs font-semibold text-strava">B · HYROX Libre</button>
+              <button onclick="startTemplateWorkout('C')" class="px-3 py-1.5 rounded-xl bg-obsidian hover:bg-elevated border border-stroke text-xs font-semibold text-strava">C · Clase Gold's</button>
+              <button onclick="startTemplateWorkout('D')" class="px-3 py-1.5 rounded-xl bg-obsidian hover:bg-elevated border border-stroke text-xs font-semibold text-electric">D · Z2 + Gemelo</button>
+              <button onclick="startTemplateWorkout('E')" class="px-3 py-1.5 rounded-xl bg-obsidian hover:bg-elevated border border-stroke text-xs font-semibold text-amber">E · LT2 / VO2</button>
             </div>
-            <h2 class="text-lg md:text-xl font-extrabold text-white mt-0.5" id="logger-header-title">Sesión en Curso</h2>
-          </div>
-
-          <div class="flex flex-wrap items-center gap-2">
-            <!-- View Mode Toggle -->
-            <div class="flex bg-obsidian p-1 rounded-xl border border-stroke">
-              <button onclick="setLoggerMode('guided')" id="btn-mode-guided" class="px-3 py-1.5 rounded-lg text-xs font-bold transition">Modo Guiado</button>
-              <button onclick="setLoggerMode('list')" id="btn-mode-list" class="px-3 py-1.5 rounded-lg text-xs font-bold transition">Vista Lista</button>
-            </div>
-            <button onclick="finishAndSaveWorkout()" class="px-4 py-2 rounded-xl bg-lime hover:bg-lime/90 text-obsidian font-extrabold text-xs sm:text-sm flex items-center gap-1.5 transition active:scale-95">
-              <i data-lucide="check-circle-2" class="w-4 h-4"></i> Finalizar
-            </button>
-          </div>
-        </div>
-
-        <!-- Lock Screen & Wake Lock Controls + Rest Timer -->
-        <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stroke">
-          <div class="flex flex-wrap items-center gap-2">
-            <button onclick="toggleWakeLock()" id="btn-wakelock" class="px-2.5 py-1.5 rounded-xl bg-obsidian border border-stroke text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 transition">
-              <i data-lucide="sun" class="w-3.5 h-3.5"></i> <span>Pantalla Activa: OFF</span>
-            </button>
-            <button onclick="toggleLockScreenMedia()" id="btn-lockmedia" class="px-2.5 py-1.5 rounded-xl bg-obsidian border border-stroke text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 transition" title="Muestra el ejercicio y descanso en la pantalla de bloqueo del móvil">
-              <i data-lucide="smartphone" class="w-3.5 h-3.5"></i> <span>Widget Bloqueo: OFF</span>
-            </button>
-          </div>
-
-          <div class="flex items-center gap-1.5 bg-obsidian border border-stroke rounded-xl px-2.5 py-1.5">
-            <i data-lucide="timer" class="w-4 h-4 text-electric"></i>
-            <span id="rest-timer-display" class="font-mono text-sm font-bold text-white w-12 text-center">00:00</span>
-            <button onclick="startRestTimer(60)" class="px-2 py-1 text-[11px] font-mono bg-elevated hover:bg-stroke rounded text-slate-200">1:00</button>
-            <button onclick="startRestTimer(90)" class="px-2 py-1 text-[11px] font-mono bg-elevated hover:bg-stroke rounded text-slate-200">1:30</button>
-            <button onclick="startRestTimer(150)" class="px-2 py-1 text-[11px] font-mono bg-elevated hover:bg-stroke rounded text-slate-200">2:30</button>
-            <button onclick="stopRestTimer()" class="p-1 text-slate-500 hover:text-white"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
           </div>
         </div>
       </div>
 
-      <!-- MODO GUIADO (USER-FRIENDLY PASO A PASO EN EL GYM) -->
-      <div id="logger-mode-guided" class="space-y-4">
-        <div class="glass-card rounded-2xl p-5 space-y-4" id="guided-exercise-card"></div>
-
-        <!-- Quick step navigation bar -->
-        <div class="flex items-center justify-between gap-3">
-          <button onclick="moveGuidedStep(-1)" class="flex-1 py-3 rounded-xl bg-surface border border-stroke hover:bg-elevated text-sm font-bold text-slate-200 flex items-center justify-center gap-1.5">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i> Anterior
-          </button>
-          <button onclick="moveGuidedStep(1)" class="flex-1 py-3 rounded-xl bg-surface border border-stroke hover:bg-elevated text-sm font-bold text-slate-200 flex items-center justify-center gap-1.5">
-            Siguiente <i data-lucide="arrow-right" class="w-4 h-4"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- MODO LISTA COMPLETA (ESTILO HEVY CLÁSICO) -->
-      <div id="logger-mode-list" class="hidden space-y-5">
+      <!-- VISTA DE ENTRENO ACTIVO EN CURSO -->
+      <div id="logger-active-view" class="hidden space-y-5">
+        <!-- Top Control Bar -->
         <div class="glass-card rounded-2xl p-4 space-y-3">
-          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-            <div class="sm:col-span-2">
-              <label class="text-[11px] font-semibold text-slate-400 uppercase">Título de la sesión</label>
-              <input id="log-title" type="text" oninput="syncDraftMeta()" class="mt-1 w-full bg-obsidian border border-stroke rounded-xl px-3 py-2 text-sm font-semibold text-white focus:outline-none focus:border-strava" />
-            </div>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <label class="text-[11px] font-semibold text-slate-400 uppercase">Fecha</label>
-              <input id="log-date" type="date" onchange="syncDraftMeta()" class="mt-1 w-full bg-obsidian border border-stroke rounded-xl px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-strava" />
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-strava">Entreno Activo</span>
+                <span class="px-2 py-0.5 rounded bg-obsidian border border-stroke text-[11px] font-mono text-lime" id="elapsed-timer-display">00:00</span>
+              </div>
+              <h2 class="text-lg md:text-xl font-extrabold text-white mt-0.5" id="logger-header-title">Sesión en Curso</h2>
             </div>
-            <div>
-              <label class="text-[11px] font-semibold text-slate-400 uppercase">RPE Global (1–10)</label>
-              <input id="log-rpe" type="number" min="1" max="10" value="7" onchange="syncDraftMeta()" class="mt-1 w-full bg-obsidian border border-stroke rounded-xl px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-strava" />
+
+            <div class="flex flex-wrap items-center gap-2">
+              <!-- View Mode Toggle -->
+              <div class="flex bg-obsidian p-1 rounded-xl border border-stroke">
+                <button onclick="setLoggerMode('guided')" id="btn-mode-guided" class="px-3 py-1.5 rounded-lg text-xs font-bold transition">Modo Guiado</button>
+                <button onclick="setLoggerMode('list')" id="btn-mode-list" class="px-3 py-1.5 rounded-lg text-xs font-bold transition">Vista Lista</button>
+              </div>
+              <button onclick="discardActiveWorkout()" class="px-3 py-2 rounded-xl bg-obsidian border border-stroke hover:border-red-500/50 text-slate-400 hover:text-red-400 font-semibold text-xs transition" title="Cancelar y descartar sesión">
+                Descartar
+              </button>
+              <button onclick="finishAndSaveWorkout()" class="px-4 py-2 rounded-xl bg-lime hover:bg-lime/90 text-obsidian font-extrabold text-xs sm:text-sm flex items-center gap-1.5 transition active:scale-95">
+                <i data-lucide="check-circle-2" class="w-4 h-4"></i> Finalizar
+              </button>
             </div>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2 pt-1">
-            <span class="text-xs text-slate-400 mr-1">Plantillas:</span>
-            <button onclick="loadTemplate('A')" class="px-2.5 py-1 rounded-lg bg-elevated hover:bg-stroke border border-stroke text-xs font-semibold text-slate-200">A · Fuerza</button>
-            <button onclick="loadTemplate('B')" class="px-2.5 py-1 rounded-lg bg-elevated hover:bg-stroke border border-stroke text-xs font-semibold text-slate-200">B · HYROX Libre</button>
-            <button onclick="loadTemplate('C')" class="px-2.5 py-1 rounded-lg bg-elevated hover:bg-stroke border border-stroke text-xs font-semibold text-slate-200">C · Clase Gold's</button>
-            <button onclick="loadTemplate('D')" class="px-2.5 py-1 rounded-lg bg-elevated hover:bg-stroke border border-stroke text-xs font-semibold text-slate-200">D · Z2 + Gemelo</button>
-            <button onclick="loadTemplate('E')" class="px-2.5 py-1 rounded-lg bg-elevated hover:bg-stroke border border-stroke text-xs font-semibold text-slate-200">E · LT2/VO2</button>
-            <button onclick="loadTemplate('EMPTY')" class="px-2.5 py-1 rounded-lg bg-obsidian hover:bg-elevated border border-stroke text-xs font-semibold text-slate-400">Vacía</button>
+          <!-- Lock Screen & Wake Lock Controls + Rest Timer -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stroke">
+            <div class="flex flex-wrap items-center gap-2">
+              <button onclick="toggleWakeLock()" id="btn-wakelock" class="px-2.5 py-1.5 rounded-xl bg-obsidian border border-stroke text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 transition">
+                <i data-lucide="sun" class="w-3.5 h-3.5"></i> <span>Pantalla Activa: OFF</span>
+              </button>
+              <button onclick="toggleLockScreenMedia()" id="btn-lockmedia" class="px-2.5 py-1.5 rounded-xl bg-obsidian border border-stroke text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 transition" title="Muestra el ejercicio y descanso en la pantalla de bloqueo del móvil">
+                <i data-lucide="smartphone" class="w-3.5 h-3.5"></i> <span>Widget Bloqueo: OFF</span>
+              </button>
+            </div>
+
+            <div class="flex items-center gap-1.5 bg-obsidian border border-stroke rounded-xl px-2.5 py-1.5">
+              <i data-lucide="timer" class="w-4 h-4 text-electric"></i>
+              <span id="rest-timer-display" class="font-mono text-sm font-bold text-white w-12 text-center">00:00</span>
+              <button onclick="startRestTimer(60)" class="px-2 py-1 text-[11px] font-mono bg-elevated hover:bg-stroke rounded text-slate-200">1:00</button>
+              <button onclick="startRestTimer(90)" class="px-2 py-1 text-[11px] font-mono bg-elevated hover:bg-stroke rounded text-slate-200">1:30</button>
+              <button onclick="startRestTimer(150)" class="px-2 py-1 text-[11px] font-mono bg-elevated hover:bg-stroke rounded text-slate-200">2:30</button>
+              <button onclick="stopRestTimer()" class="p-1 text-slate-500 hover:text-white"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+            </div>
           </div>
         </div>
 
-        <!-- Strength Blocks -->
-        <div class="space-y-3">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-200 flex items-center gap-2">
-              <i data-lucide="dumbbell" class="w-4 h-4 text-strava"></i> Bloques de Fuerza
-            </h3>
-            <div class="flex items-center gap-2">
-              <select id="add-strength-select" class="bg-surface border border-stroke rounded-xl px-3 py-1.5 text-xs text-white">
-                <option value="Sentadilla Trasera">Sentadilla Trasera (1RM 82.6 kg)</option>
-                <option value="Peso Muerto Rumano (RDL)">Peso Muerto Rumano (1RM 103.1 kg)</option>
-                <option value="Press Banca">Press Banca (1RM 70.8 kg)</option>
-                <option value="Press Militar">Press Militar (1RM 50.2 kg)</option>
-                <option value="DB Thrusters (mancuerna/lado)">DB Thrusters (7 kg/lado)</option>
-                <option value="Zancada Búlgara (mancuerna/lado)">Zancada Búlgara</option>
-                <option value="Elevación Gemelo Sentado">Elevación Gemelo Sentado</option>
-                <option value="Drops Excéntricos Gemelo">Drops Excéntricos Gemelo</option>
-                <option value="Wall Balls (6 kg · 3.00 m)">Wall Balls (6 kg)</option>
-                <option value="Pallof Press">Pallof Press (Core Anti-flato)</option>
-                <option value="Weighted Dead Bug">Weighted Dead Bug</option>
-                <option value="Remo Inclinado Barra">Remo Inclinado Barra</option>
-              </select>
-              <button onclick="addStrengthExercise()" class="px-3 py-1.5 rounded-xl bg-strava/20 border border-strava/40 text-strava hover:bg-strava hover:text-white text-xs font-bold transition">+ Ejercicio</button>
-            </div>
+        <!-- MODO GUIADO (USER-FRIENDLY PASO A PASO EN EL GYM) -->
+        <div id="logger-mode-guided" class="space-y-4">
+          <div class="glass-card rounded-2xl p-5 space-y-4" id="guided-exercise-card"></div>
+
+          <!-- Quick step navigation bar -->
+          <div class="flex items-center justify-between gap-3">
+            <button onclick="moveGuidedStep(-1)" class="flex-1 py-3 rounded-xl bg-surface border border-stroke hover:bg-elevated text-sm font-bold text-slate-200 flex items-center justify-center gap-1.5">
+              <i data-lucide="arrow-left" class="w-4 h-4"></i> Anterior
+            </button>
+            <button onclick="moveGuidedStep(1)" class="flex-1 py-3 rounded-xl bg-surface border border-stroke hover:bg-elevated text-sm font-bold text-slate-200 flex items-center justify-center gap-1.5">
+              Siguiente <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
           </div>
-          <div id="logger-strength-list" class="space-y-3"></div>
         </div>
 
-        <!-- Cardio / HYROX Station Blocks -->
-        <div class="space-y-3">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-200 flex items-center gap-2">
-              <i data-lucide="footprints" class="w-4 h-4 text-electric"></i> Running (km) y Estaciones HYROX
-            </h3>
-            <div class="flex items-center gap-2">
-              <select id="add-hyrox-select" class="bg-surface border border-stroke rounded-xl px-3 py-1.5 text-xs text-white">
-                <option value="Carrera Continua Z2" data-isrun="1">Carrera Continua Z2 (km)</option>
-                <option value="Series Umbral LT2 / VO2max" data-isrun="1">Series Umbral LT2 / VO2max (km)</option>
-                <option value="Tirada Larga Z2" data-isrun="1">Tirada Larga Z2 (km)</option>
-                <option value="Sled Push (152 kg)" data-isrun="0">Sled Push (50 m · 152 kg)</option>
-                <option value="Sled Pull (103 kg)" data-isrun="0">Sled Pull (50 m · 103 kg)</option>
-                <option value="SkiErg (1000 m)" data-isrun="0">SkiErg (1000 m)</option>
-                <option value="Rowing (1000 m)" data-isrun="0">Rowing (1000 m)</option>
-                <option value="Burpee Broad Jumps (80 m)" data-isrun="0">Burpee Broad Jumps (80 m)</option>
-                <option value="Farmers Carry (2x24 kg)" data-isrun="0">Farmers Carry (200 m · 2x24 kg)</option>
-                <option value="Sandbag Lunges (20 kg)" data-isrun="0">Sandbag Lunges (100 m · 20 kg)</option>
-                <option value="Wall Balls (100 reps · 6 kg)" data-isrun="0">Wall Balls (100 reps · 6 kg)</option>
-                <option value="Clase HYROX Gold's Gym (60')" data-isrun="1">Clase HYROX Gold's Gym (km estim.)</option>
-              </select>
-              <button onclick="addHyroxBlock()" class="px-3 py-1.5 rounded-xl bg-electric/15 border border-electric/40 text-electric hover:bg-electric hover:text-obsidian text-xs font-bold transition">+ Bloque</button>
+        <!-- MODO LISTA COMPLETA (ESTILO HEVY CLÁSICO + CREADOR PERSONALIZADO) -->
+        <div id="logger-mode-list" class="hidden space-y-5">
+          <div class="glass-card rounded-2xl p-4 space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <div class="sm:col-span-2">
+                <label class="text-[11px] font-semibold text-slate-400 uppercase">Título de la sesión</label>
+                <input id="log-title" type="text" oninput="syncDraftMeta()" class="mt-1 w-full bg-obsidian border border-stroke rounded-xl px-3 py-2 text-sm font-semibold text-white focus:outline-none focus:border-strava" />
+              </div>
+              <div>
+                <label class="text-[11px] font-semibold text-slate-400 uppercase">Fecha</label>
+                <input id="log-date" type="date" onchange="syncDraftMeta()" class="mt-1 w-full bg-obsidian border border-stroke rounded-xl px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-strava" />
+              </div>
+              <div>
+                <label class="text-[11px] font-semibold text-slate-400 uppercase">RPE Global (1–10)</label>
+                <input id="log-rpe" type="number" min="1" max="10" value="7" onchange="syncDraftMeta()" class="mt-1 w-full bg-obsidian border border-stroke rounded-xl px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-strava" />
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 pt-1">
+              <span class="text-xs text-slate-400 mr-1">Cambiar plantilla:</span>
+              <button onclick="loadTemplate('A')" class="px-2.5 py-1 rounded-lg bg-elevated hover:bg-stroke border border-stroke text-xs font-semibold text-slate-200">A · Fuerza</button>
+              <button onclick="loadTemplate('B')" class="px-2.5 py-1 rounded-lg bg-elevated hover:bg-stroke border border-stroke text-xs font-semibold text-slate-200">B · HYROX Libre</button>
+              <button onclick="loadTemplate('C')" class="px-2.5 py-1 rounded-lg bg-elevated hover:bg-stroke border border-stroke text-xs font-semibold text-slate-200">C · Clase Gold's</button>
+              <button onclick="loadTemplate('D')" class="px-2.5 py-1 rounded-lg bg-elevated hover:bg-stroke border border-stroke text-xs font-semibold text-slate-200">D · Z2 + Gemelo</button>
+              <button onclick="loadTemplate('E')" class="px-2.5 py-1 rounded-lg bg-elevated hover:bg-stroke border border-stroke text-xs font-semibold text-slate-200">E · LT2/VO2</button>
+              <button onclick="loadTemplate('EMPTY')" class="px-2.5 py-1 rounded-lg bg-obsidian hover:bg-elevated border border-stroke text-xs font-semibold text-slate-400">Vacía</button>
             </div>
           </div>
-          <div id="logger-hyrox-list" class="space-y-3"></div>
-        </div>
 
-        <div class="glass-card rounded-2xl p-4">
-          <label class="text-[11px] font-semibold text-slate-400 uppercase">Notas técnicas (gemelos, flato, sensación trineos)</label>
-          <textarea id="log-notes" rows="2" oninput="syncDraftMeta()" placeholder="Ej. Empuje mediopié-talón en trineos sin calambres, respiración 3:2 sin flato..." class="mt-1.5 w-full bg-obsidian border border-stroke rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-strava"></textarea>
+          <!-- CREADOR DE EJERCICIO PERSONALIZADO (CON ASIGNACIÓN A MAPA DE CALOR) -->
+          <div class="glass-card rounded-2xl p-4 border-l-4 border-l-lime space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-extrabold uppercase tracking-wider text-lime flex items-center gap-1.5">
+                <i data-lucide="plus-square" class="w-4 h-4"></i> Añadir Ejercicio Personalizado (Actualiza Mapa de Calor)
+              </h3>
+              <span class="text-[11px] text-slate-400 hidden sm:inline">Se guarda en tu biblioteca personal</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+              <div class="sm:col-span-5">
+                <input id="custom-ex-name" type="text" placeholder="Nombre (ej. Hip Thrust, Curl Femoral, Dominadas...)" class="w-full bg-obsidian border border-stroke rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-lime" />
+              </div>
+              <div class="sm:col-span-3">
+                <select id="custom-ex-muscle" class="w-full bg-obsidian border border-stroke rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-lime">
+                  <option value="cuadriceps">Músculo: Cuádriceps</option>
+                  <option value="isquios">Músculo: Isquiotibiales</option>
+                  <option value="gluteos">Músculo: Glúteos</option>
+                  <option value="gemelos">Músculo: Gemelos / Sóleo</option>
+                  <option value="core">Músculo: Core / Abdominales</option>
+                  <option value="espalda">Músculo: Dorsales / Espalda</option>
+                  <option value="lumbar">Músculo: Zona Lumbar</option>
+                  <option value="hombros">Músculo: Hombros</option>
+                  <option value="pecho">Músculo: Pecho</option>
+                  <option value="brazos">Músculo: Brazos / Agarre</option>
+                </select>
+              </div>
+              <div class="sm:col-span-2">
+                <select id="custom-ex-type" class="w-full bg-obsidian border border-stroke rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-lime">
+                  <option value="strength">Tipo: Series/Kg</option>
+                  <option value="station">Tipo: Estación/Tiempo</option>
+                  <option value="run">Tipo: Carrera (Km)</option>
+                </select>
+              </div>
+              <div class="sm:col-span-2">
+                <button onclick="addCustomExercise()" class="w-full h-full py-2 px-3 rounded-xl bg-lime hover:bg-lime/90 text-obsidian font-extrabold text-xs transition active:scale-95">
+                  + Añadir
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Strength Blocks -->
+          <div class="space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                <i data-lucide="dumbbell" class="w-4 h-4 text-strava"></i> Bloques de Fuerza
+              </h3>
+              <div class="flex items-center gap-2">
+                <select id="add-strength-select" class="bg-surface border border-stroke rounded-xl px-3 py-1.5 text-xs text-white"></select>
+                <button onclick="addStrengthExercise()" class="px-3 py-1.5 rounded-xl bg-strava/20 border border-strava/40 text-strava hover:bg-strava hover:text-white text-xs font-bold transition">+ Ejercicio</button>
+              </div>
+            </div>
+            <div id="logger-strength-list" class="space-y-3"></div>
+          </div>
+
+          <!-- Cardio / HYROX Station Blocks -->
+          <div class="space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                <i data-lucide="footprints" class="w-4 h-4 text-electric"></i> Running (km) y Estaciones HYROX
+              </h3>
+              <div class="flex items-center gap-2">
+                <select id="add-hyrox-select" class="bg-surface border border-stroke rounded-xl px-3 py-1.5 text-xs text-white"></select>
+                <button onclick="addHyroxBlock()" class="px-3 py-1.5 rounded-xl bg-electric/15 border border-electric/40 text-electric hover:bg-electric hover:text-obsidian text-xs font-bold transition">+ Bloque</button>
+              </div>
+            </div>
+            <div id="logger-hyrox-list" class="space-y-3"></div>
+          </div>
+
+          <div class="glass-card rounded-2xl p-4">
+            <label class="text-[11px] font-semibold text-slate-400 uppercase">Notas técnicas (gemelos, flato, sensación trineos)</label>
+            <textarea id="log-notes" rows="2" oninput="syncDraftMeta()" placeholder="Ej. Empuje mediopié-talón en trineos sin calambres, respiración 3:2 sin flato..." class="mt-1.5 w-full bg-obsidian border border-stroke rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-strava"></textarea>
+          </div>
         </div>
       </div>
     </section>
@@ -469,7 +527,7 @@
       <!-- PRs Grid -->
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" id="prs-grid"></div>
 
-      <!-- NEW: WEEKLY KM PROGRESS CHART + MONTHLY CALENDAR + 7-DAY MUSCLE BODY -->
+      <!-- WEEKLY KM PROGRESS CHART + MONTHLY CALENDAR + 7-DAY MUSCLE BODY -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
         <!-- Monthly Calendar (7 cols) -->
         <div class="lg:col-span-7 glass-card rounded-2xl p-4 md:p-5 space-y-4">
@@ -511,7 +569,6 @@
             <div class="text-center">
               <span class="text-[10px] font-mono uppercase text-slate-500 block mb-1">Frontal</span>
               <svg viewBox="0 0 140 280" class="w-full max-w-[130px] mx-auto">
-                <!-- Head & Neck -->
                 <circle cx="70" cy="22" r="13" fill="#1E293B" stroke="#334155" stroke-width="1.2"/>
                 <rect x="63" y="34" width="14" height="10" rx="3" fill="#1E293B"/>
                 <!-- Deltoids (Hombros) -->
@@ -540,7 +597,6 @@
             <div class="text-center">
               <span class="text-[10px] font-mono uppercase text-slate-500 block mb-1">Posterior</span>
               <svg viewBox="0 0 140 280" class="w-full max-w-[130px] mx-auto">
-                <!-- Head & Neck -->
                 <circle cx="70" cy="22" r="13" fill="#1E293B" stroke="#334155" stroke-width="1.2"/>
                 <!-- Traps / Upper Back -->
                 <path data-muscle="espalda" onclick="selectMuscle('espalda')" class="muscle-part" d="M54,38 L86,38 L94,54 L70,68 L46,54 Z" fill="#1E293B" stroke="#334155"/>
@@ -665,7 +721,7 @@
 // ============================================================================
 // 1. BASE DE DATOS DEL ATLETA Y PERIODIZACIÓN DE 22 SEMANAS (MÁLAGA 2027)
 // ============================================================================
-const STORAGE_KEY = 'hyrox_malaga_2027_coach_v2';
+const STORAGE_KEY = 'hyrox_malaga_2027_coach_v3';
 const PLAN_START = new Date(2026, 10, 16); // Lunes 16/11/2026
 const RACE_DATE = new Date(2027, 3, 17);   // Sábado 17/04/2027
 
@@ -706,6 +762,36 @@ const WEEK_CONFIGS = [
   { w:22, block:'Bloque 5 · Málaga',        km:14,   z2:'6:15–6:45', lt2:'5:20', pct:'Mov.', squat:'Aire',       rdl:'Movilidad',push:'CARRERA',   pull:'CARRERA',   tag:'HYROX MÁLAGA SÁB 17/04' }
 ];
 
+const DEFAULT_STRENGTH_CATALOG = [
+  { name: 'Sentadilla Trasera', muscle: 'cuadriceps', defaultKg: 60 },
+  { name: 'Peso Muerto Rumano (RDL)', muscle: 'isquios', defaultKg: 75 },
+  { name: 'Press Banca', muscle: 'pecho', defaultKg: 50 },
+  { name: 'Press Militar', muscle: 'hombros', defaultKg: 37.5 },
+  { name: 'DB Thrusters (mancuerna/lado)', muscle: 'hombros', defaultKg: 7 },
+  { name: 'Zancada Búlgara (mancuerna/lado)', muscle: 'cuadriceps', defaultKg: 14 },
+  { name: 'Elevación Gemelo Sentado', muscle: 'gemelos', defaultKg: 35 },
+  { name: 'Drops Excéntricos Gemelo', muscle: 'gemelos', defaultKg: 0 },
+  { name: 'Wall Balls (6 kg · 3.00 m)', muscle: 'cuadriceps', defaultKg: 6 },
+  { name: 'Pallof Press', muscle: 'core', defaultKg: 10 },
+  { name: 'Weighted Dead Bug', muscle: 'core', defaultKg: 5 },
+  { name: 'Remo Inclinado Barra', muscle: 'espalda', defaultKg: 45 }
+];
+
+const DEFAULT_HYROX_CATALOG = [
+  { name: 'Carrera Continua Z2', muscle: 'gemelos', isRun: true, dist: 6.0, time: '40:00', hr: 142 },
+  { name: 'Series Umbral LT2 / VO2max', muscle: 'gemelos', isRun: true, dist: 4.0, time: '22:00', hr: 168 },
+  { name: 'Tirada Larga Z2', muscle: 'gemelos', isRun: true, dist: 8.0, time: '54:00', hr: 144 },
+  { name: 'Sled Push (152 kg)', muscle: 'cuadriceps', isRun: false, dist: 0.05, time: '03:50', hr: 172 },
+  { name: 'Sled Pull (103 kg)', muscle: 'espalda', isRun: false, dist: 0.05, time: '05:20', hr: 168 },
+  { name: 'SkiErg (1000 m)', muscle: 'espalda', isRun: false, dist: 1.0, time: '05:10', hr: 162 },
+  { name: 'Rowing (1000 m)', muscle: 'espalda', isRun: false, dist: 1.0, time: '05:15', hr: 164 },
+  { name: 'Burpee Broad Jumps (80 m)', muscle: 'pecho', isRun: false, dist: 0.08, time: '06:00', hr: 174 },
+  { name: 'Farmers Carry (2x24 kg)', muscle: 'brazos', isRun: false, dist: 0.2, time: '02:05', hr: 165 },
+  { name: 'Sandbag Lunges (20 kg)', muscle: 'gluteos', isRun: false, dist: 0.1, time: '06:00', hr: 170 },
+  { name: 'Wall Balls (100 reps · 6 kg)', muscle: 'cuadriceps', isRun: false, dist: 0.1, time: '07:45', hr: 176 },
+  { name: "Clase HYROX Gold's Gym (60')", muscle: 'cuadriceps', isRun: true, dist: 3.0, time: '16:30', hr: 158 }
+];
+
 const SESSION_META = {
   A: {
     code: 'A', badge: 'Fuerza Máxima (Sala Racks)', color: 'lime', dur: '75–80 min',
@@ -716,14 +802,14 @@ const SESSION_META = {
     ],
     nutri: 'Moderado',
     templateStrength: [
-      { name: 'Sentadilla Trasera', cue: 'Romper paralelo · RIR 2 · Desc 2:30', restSec: 150, sets: [{kg:60, reps:8, rpe:7.5},{kg:60, reps:8, rpe:8},{kg:60, reps:8, rpe:8},{kg:60, reps:8, rpe:8}] },
-      { name: 'Peso Muerto Rumano (RDL)', cue: 'Bisagra cadera potente · Espalda neutra', restSec: 150, sets: [{kg:75, reps:5, rpe:7.5},{kg:75, reps:5, rpe:8},{kg:75, reps:5, rpe:8},{kg:75, reps:5, rpe:8}] },
-      { name: 'Zancada Búlgara (mancuerna/lado)', cue: 'Estabilidad rodilla · Empuje talón', restSec: 60, sets: [{kg:14, reps:10, rpe:8},{kg:14, reps:10, rpe:8},{kg:14, reps:10, rpe:8}] },
-      { name: 'Press Militar', cue: 'Core firme sin arquear lumbar', restSec: 90, sets: [{kg:37.5, reps:8, rpe:7.5},{kg:37.5, reps:8, rpe:8},{kg:37.5, reps:8, rpe:8}] },
-      { name: 'Elevación Gemelo Sentado', cue: 'Subida 1s · Pausa 1s · Bajada 3s', restSec: 60, sets: [{kg:35, reps:12, rpe:8},{kg:35, reps:12, rpe:8},{kg:35, reps:12, rpe:8},{kg:35, reps:12, rpe:8}] }
+      { name: 'Sentadilla Trasera', muscle: 'cuadriceps', cue: 'Romper paralelo · RIR 2 · Desc 2:30', restSec: 150, sets: [{kg:60, reps:8, rpe:7.5},{kg:60, reps:8, rpe:8},{kg:60, reps:8, rpe:8},{kg:60, reps:8, rpe:8}] },
+      { name: 'Peso Muerto Rumano (RDL)', muscle: 'isquios', cue: 'Bisagra cadera potente · Espalda neutra', restSec: 150, sets: [{kg:75, reps:5, rpe:7.5},{kg:75, reps:5, rpe:8},{kg:75, reps:5, rpe:8},{kg:75, reps:5, rpe:8}] },
+      { name: 'Zancada Búlgara (mancuerna/lado)', muscle: 'cuadriceps', cue: 'Estabilidad rodilla · Empuje talón', restSec: 60, sets: [{kg:14, reps:10, rpe:8},{kg:14, reps:10, rpe:8},{kg:14, reps:10, rpe:8}] },
+      { name: 'Press Militar', muscle: 'hombros', cue: 'Core firme sin arquear lumbar', restSec: 90, sets: [{kg:37.5, reps:8, rpe:7.5},{kg:37.5, reps:8, rpe:8},{kg:37.5, reps:8, rpe:8}] },
+      { name: 'Elevación Gemelo Sentado', muscle: 'gemelos', cue: 'Subida 1s · Pausa 1s · Bajada 3s', restSec: 60, sets: [{kg:35, reps:12, rpe:8},{kg:35, reps:12, rpe:8},{kg:35, reps:12, rpe:8},{kg:35, reps:12, rpe:8}] }
     ],
     templateHyrox: [
-      { name: 'Farmers Carry (2x24 kg)', isRun: false, dist: 0.15, time: '01:30', hr: 145, notes: 'Escápulas firmes, paso corto rápido' }
+      { name: 'Farmers Carry (2x24 kg)', muscle: 'brazos', isRun: false, dist: 0.15, time: '01:30', hr: 145, notes: 'Escápulas firmes, paso corto rápido' }
     ]
   },
   B: {
@@ -735,14 +821,14 @@ const SESSION_META = {
     ],
     nutri: 'Alta Carga',
     templateStrength: [
-      { name: 'Wall Balls (6 kg · 3.00 m)', cue: 'Romper paralelo · 4x25 o 5x20 sin fallo', restSec: 60, sets: [{kg:6, reps:25, rpe:8},{kg:6, reps:25, rpe:8.5},{kg:6, reps:25, rpe:9}] },
-      { name: 'DB Thrusters (mancuerna/lado)', cue: 'Empuje vertical fluido al subir', restSec: 60, sets: [{kg:7, reps:15, rpe:7.5},{kg:7, reps:15, rpe:8}] }
+      { name: 'Wall Balls (6 kg · 3.00 m)', muscle: 'cuadriceps', cue: 'Romper paralelo · 4x25 o 5x20 sin fallo', restSec: 60, sets: [{kg:6, reps:25, rpe:8},{kg:6, reps:25, rpe:8.5},{kg:6, reps:25, rpe:9}] },
+      { name: 'DB Thrusters (mancuerna/lado)', muscle: 'hombros', cue: 'Empuje vertical fluido al subir', restSec: 60, sets: [{kg:7, reps:15, rpe:7.5},{kg:7, reps:15, rpe:8}] }
     ],
     templateHyrox: [
-      { name: 'Sled Push (152 kg)', isRun: false, dist: 0.125, time: '06:00', hr: 168, notes: '5x25m mediopié-talón, codos 90-120°, sin apnea' },
-      { name: 'Sled Pull (103 kg)', isRun: false, dist: 0.125, time: '07:30', hr: 164, notes: '5x25m walking back cadera, cuerda lateral' },
-      { name: 'SkiErg (1000 m)', isRun: false, dist: 1.5, time: '06:45', hr: 162, notes: '3x500m talones pegados al suelo' },
-      { name: 'Carrera Comprometida Pos-Trineo', isRun: true, dist: 1.2, time: '06:20', hr: 168, notes: '3x400m tras Ski/Trineos' }
+      { name: 'Sled Push (152 kg)', muscle: 'cuadriceps', isRun: false, dist: 0.125, time: '06:00', hr: 168, notes: '5x25m mediopié-talón, codos 90-120°, sin apnea' },
+      { name: 'Sled Pull (103 kg)', muscle: 'espalda', isRun: false, dist: 0.125, time: '07:30', hr: 164, notes: '5x25m walking back cadera, cuerda lateral' },
+      { name: 'SkiErg (1000 m)', muscle: 'espalda', isRun: false, dist: 1.5, time: '06:45', hr: 162, notes: '3x500m talones pegados al suelo' },
+      { name: 'Carrera Comprometida Pos-Trineo', muscle: 'gemelos', isRun: true, dist: 1.2, time: '06:20', hr: 168, notes: '3x400m tras Ski/Trineos' }
     ]
   },
   C: {
@@ -754,10 +840,10 @@ const SESSION_META = {
     ],
     nutri: 'Alta Carga',
     templateStrength: [
-      { name: 'Wall Balls (6 kg · 3.00 m)', cue: 'Partir en bloques de 20 · Respirar al lanzar', restSec: 60, sets: [{kg:6, reps:20, rpe:7.5},{kg:6, reps:20, rpe:8},{kg:6, reps:20, rpe:8}] }
+      { name: 'Wall Balls (6 kg · 3.00 m)', muscle: 'cuadriceps', cue: 'Partir en bloques de 20 · Respirar al lanzar', restSec: 60, sets: [{kg:6, reps:20, rpe:7.5},{kg:6, reps:20, rpe:8},{kg:6, reps:20, rpe:8}] }
     ],
     templateHyrox: [
-      { name: "Carrera acumulada Clase Gold's Gym", isRun: true, dist: 3.0, time: '16:30', hr: 158, notes: 'RPE 7.5-8 · Talones planos SkiErg y pausa Push->Pull' }
+      { name: "Carrera acumulada Clase Gold's Gym", muscle: 'gemelos', isRun: true, dist: 3.0, time: '16:30', hr: 158, notes: 'RPE 7.5-8 · Talones planos SkiErg y pausa Push->Pull' }
     ]
   },
   D: {
@@ -769,13 +855,13 @@ const SESSION_META = {
     ],
     nutri: 'Moderado',
     templateStrength: [
-      { name: 'Elevación Gemelo Sentado', cue: 'Bajada lenta 3s · Pausa 1s abajo', restSec: 60, sets: [{kg:30, reps:15, rpe:7.5},{kg:30, reps:15, rpe:8},{kg:30, reps:15, rpe:8},{kg:30, reps:15, rpe:8}] },
-      { name: 'Drops Excéntricos Gemelo', cue: 'En escalón · Rodilla recta y doblada', restSec: 45, sets: [{kg:0, reps:15, rpe:7},{kg:0, reps:15, rpe:7},{kg:0, reps:15, rpe:7}] },
-      { name: 'Pallof Press', cue: 'Pausa 2s extendido sin rotar tronco', restSec: 45, sets: [{kg:10, reps:12, rpe:7},{kg:10, reps:12, rpe:7.5},{kg:10, reps:12, rpe:7.5}] },
-      { name: 'Weighted Dead Bug', cue: 'Lumbar pegada al suelo · Soltar aire al bajar', restSec: 45, sets: [{kg:5, reps:10, rpe:7.5},{kg:5, reps:10, rpe:7.5},{kg:5, reps:10, rpe:8}] }
+      { name: 'Elevación Gemelo Sentado', muscle: 'gemelos', cue: 'Bajada lenta 3s · Pausa 1s abajo', restSec: 60, sets: [{kg:30, reps:15, rpe:7.5},{kg:30, reps:15, rpe:8},{kg:30, reps:15, rpe:8},{kg:30, reps:15, rpe:8}] },
+      { name: 'Drops Excéntricos Gemelo', muscle: 'gemelos', cue: 'En escalón · Rodilla recta y doblada', restSec: 45, sets: [{kg:0, reps:15, rpe:7},{kg:0, reps:15, rpe:7},{kg:0, reps:15, rpe:7}] },
+      { name: 'Pallof Press', muscle: 'core', cue: 'Pausa 2s extendido sin rotar tronco', restSec: 45, sets: [{kg:10, reps:12, rpe:7},{kg:10, reps:12, rpe:7.5},{kg:10, reps:12, rpe:7.5}] },
+      { name: 'Weighted Dead Bug', muscle: 'core', cue: 'Lumbar pegada al suelo · Soltar aire al bajar', restSec: 45, sets: [{kg:5, reps:10, rpe:7.5},{kg:5, reps:10, rpe:7.5},{kg:5, reps:10, rpe:8}] }
     ],
     templateHyrox: [
-      { name: 'Carrera Continua Z2', isRun: true, dist: 6.0, time: '40:00', hr: 142, notes: 'Z2 estricta 132-149 lpm · Respiración 3:2 sin flato' }
+      { name: 'Carrera Continua Z2', muscle: 'gemelos', isRun: true, dist: 6.0, time: '40:00', hr: 142, notes: 'Z2 estricta 132-149 lpm · Respiración 3:2 sin flato' }
     ]
   },
   E: {
@@ -787,11 +873,11 @@ const SESSION_META = {
     ],
     nutri: 'Moderado',
     templateStrength: [
-      { name: 'Pallof Press', cue: 'Estabilidad transverso abdominal', restSec: 45, sets: [{kg:10, reps:12, rpe:7},{kg:10, reps:12, rpe:7}] }
+      { name: 'Pallof Press', muscle: 'core', cue: 'Estabilidad transverso abdominal', restSec: 45, sets: [{kg:10, reps:12, rpe:7},{kg:10, reps:12, rpe:7}] }
     ],
     templateHyrox: [
-      { name: 'Calentamiento + Vuelta Calma Z2', isRun: true, dist: 2.5, time: '17:00', hr: 138, notes: 'Trote suave + progresivos' },
-      { name: 'Series Umbral LT2 / Cuestas', isRun: true, dist: 4.0, time: '22:00', hr: 168, notes: 'Ritmo controlado · Cero flato' }
+      { name: 'Calentamiento + Vuelta Calma Z2', muscle: 'gemelos', isRun: true, dist: 2.5, time: '17:00', hr: 138, notes: 'Trote suave + progresivos' },
+      { name: 'Series Umbral LT2 / Cuestas', muscle: 'gemelos', isRun: true, dist: 4.0, time: '22:00', hr: 168, notes: 'Ritmo controlado · Cero flato' }
     ]
   },
   E_BRICK: {
@@ -803,10 +889,10 @@ const SESSION_META = {
     ],
     nutri: 'Alta Carga',
     templateStrength: [
-      { name: 'DB Thrusters (mancuerna/lado)', cue: 'Empuje rápido bajo fatiga', restSec: 60, sets: [{kg:7, reps:15, rpe:8},{kg:7, reps:15, rpe:8}] }
+      { name: 'DB Thrusters (mancuerna/lado)', muscle: 'hombros', cue: 'Empuje rápido bajo fatiga', restSec: 60, sets: [{kg:7, reps:15, rpe:8},{kg:7, reps:15, rpe:8}] }
     ],
     templateHyrox: [
-      { name: 'Series Umbral LT2 / VO2max', isRun: true, dist: 4.0, time: '21:00', hr: 169, notes: 'Brick día libre · Transición rápida sin flato' }
+      { name: 'Series Umbral LT2 / VO2max', muscle: 'gemelos', isRun: true, dist: 4.0, time: '21:00', hr: 169, notes: 'Brick día libre · Transición rápida sin flato' }
     ]
   },
   F: {
@@ -818,7 +904,7 @@ const SESSION_META = {
     nutri: 'Alta Carga',
     templateStrength: [],
     templateHyrox: [
-      { name: 'Tirada Larga Z2', isRun: true, dist: 8.0, time: '54:00', hr: 144, notes: 'Tirada larga Z2 · 132-149 lpm sin deriva' }
+      { name: 'Tirada Larga Z2', muscle: 'gemelos', isRun: true, dist: 8.0, time: '54:00', hr: 144, notes: 'Tirada larga Z2 · 132-149 lpm sin deriva' }
     ]
   },
   OPT_F: {
@@ -830,7 +916,7 @@ const SESSION_META = {
     nutri: 'Recuperación',
     templateStrength: [],
     templateHyrox: [
-      { name: 'Carrera Continua Z2', isRun: true, dist: 8.0, time: '52:00', hr: 141, notes: 'Opcional dominical Z2 suave' }
+      { name: 'Carrera Continua Z2', muscle: 'gemelos', isRun: true, dist: 8.0, time: '52:00', hr: 141, notes: 'Opcional dominical Z2 suave' }
     ]
   },
   REST: {
@@ -911,17 +997,17 @@ const DEFAULT_WORKOUTS = [
     durationSec: 6673,
     notes: 'Marca oficial 1:51:13 (#1513). Farmers Carry excelente (2:08, 84%). Crisis en Push (6:20) y Pull (9:05) -> calambres gemelos en Run 7 (7:38) y flato.',
     strength: [
-      { name: 'Wall Balls (6 kg · 3.00 m)', sets: [{ kg: 6, reps: 100, rpe: 10, done: true }] }
+      { name: 'Wall Balls (6 kg · 3.00 m)', muscle: 'cuadriceps', sets: [{ kg: 6, reps: 100, rpe: 10, done: true }] }
     ],
     hyrox: [
-      { name: 'Carrera Total (8x1km)', isRun: true, dist: 8.0, time: '51:11', hr: 172, notes: '5:14, 5:17, 6:14, 6:31, 6:34, 6:27, 7:38, 7:16' },
-      { name: 'SkiErg (1000 m)', isRun: false, dist: 1.0, time: '05:13', hr: 168, notes: 'Buen inicio' },
-      { name: 'Sled Push (152 kg)', isRun: false, dist: 0.05, time: '06:20', hr: 180, notes: 'Moqueta pesada + fallo postura' },
-      { name: 'Sled Pull (103 kg)', isRun: false, dist: 0.05, time: '09:05', hr: 178, notes: 'Mayor fuga (+4:02 vs típico)' },
-      { name: 'Burpee Broad Jumps (80 m)', isRun: false, dist: 0.08, time: '06:58', hr: 176, notes: 'Fatiga acumulada' },
-      { name: 'Rowing (1000 m)', isRun: false, dist: 1.0, time: '05:51', hr: 170, notes: 'Flato' },
-      { name: 'Farmers Carry (2x24 kg)', isRun: false, dist: 0.2, time: '02:08', hr: 168, notes: 'FORTALEZA PICO (-5s)' },
-      { name: 'Sandbag Lunges (20 kg)', isRun: false, dist: 0.1, time: '06:51', hr: 174, notes: 'Protegiendo gemelos' }
+      { name: 'Carrera Total (8x1km)', muscle: 'gemelos', isRun: true, dist: 8.0, time: '51:11', hr: 172, notes: '5:14, 5:17, 6:14, 6:31, 6:34, 6:27, 7:38, 7:16' },
+      { name: 'SkiErg (1000 m)', muscle: 'espalda', isRun: false, dist: 1.0, time: '05:13', hr: 168, notes: 'Buen inicio' },
+      { name: 'Sled Push (152 kg)', muscle: 'cuadriceps', isRun: false, dist: 0.05, time: '06:20', hr: 180, notes: 'Moqueta pesada + fallo postura' },
+      { name: 'Sled Pull (103 kg)', muscle: 'espalda', isRun: false, dist: 0.05, time: '09:05', hr: 178, notes: 'Mayor fuga (+4:02 vs típico)' },
+      { name: 'Burpee Broad Jumps (80 m)', muscle: 'pecho', isRun: false, dist: 0.08, time: '06:58', hr: 176, notes: 'Fatiga acumulada' },
+      { name: 'Rowing (1000 m)', muscle: 'espalda', isRun: false, dist: 1.0, time: '05:51', hr: 170, notes: 'Flato' },
+      { name: 'Farmers Carry (2x24 kg)', muscle: 'brazos', isRun: false, dist: 0.2, time: '02:08', hr: 168, notes: 'FORTALEZA PICO (-5s)' },
+      { name: 'Sandbag Lunges (20 kg)', muscle: 'gluteos', isRun: false, dist: 0.1, time: '06:51', hr: 174, notes: 'Protegiendo gemelos' }
     ]
   }
 ];
@@ -937,7 +1023,7 @@ const DEFAULT_PRS = {
 };
 
 // ============================================================================
-// 2. ESTADO GLOBAL Y PERSISTENCIA (CON BORRADOR ACTIVO LOCK-SCREEN)
+// 2. ESTADO GLOBAL Y PERSISTENCIA
 // ============================================================================
 function getLocalTodayISO() {
   const now = new Date();
@@ -949,19 +1035,18 @@ let state = {
   selectedDateStr: getLocalTodayISO(),
   planWeek: 1,
   calYear: 2026,
-  calMonth: 10, // 0=Ene, 10=Nov
+  calMonth: 10,
   afternoonShift: false,
   loggerMode: 'guided',
   completedMeals: {},
   waterMl: {},
   dailyPrehab: {},
   workouts: [],
+  customExercises: [], // Ejercicios personalizados guardados por el usuario
   prs: JSON.parse(JSON.stringify(DEFAULT_PRS)),
-  activeDraft: null // Persiste entreno en curso si apagas/cierras móvil
+  activeDraft: null // Permanece null hasta que el usuario pulsa "Empezar"
 };
 
-let restInterval = null;
-let elapsedInterval = null;
 let wakeLockSentinel = null;
 let lockAudioEl = null;
 let lockMediaActive = false;
@@ -979,13 +1064,13 @@ function loadState() {
         state.workouts = JSON.parse(JSON.stringify(DEFAULT_WORKOUTS));
       }
       if (!state.prs) state.prs = JSON.parse(JSON.stringify(DEFAULT_PRS));
+      if (!Array.isArray(state.customExercises)) state.customExercises = [];
     } else {
       state.workouts = JSON.parse(JSON.stringify(DEFAULT_WORKOUTS));
     }
   } catch (e) {
     state.workouts = JSON.parse(JSON.stringify(DEFAULT_WORKOUTS));
   }
-  // Asegurar que la fecha activa al abrir sea hoy real si está dentro del ciclo
   const todayISO = getLocalTodayISO();
   state.selectedDateStr = todayISO;
   const info = getWeekAndDayInfo(todayISO);
@@ -1069,7 +1154,7 @@ function showToast(msg) {
 }
 
 // ============================================================================
-// 3. CÁLCULO DE KM SEMANALES Y MAPA MUSCULAR DE LOS ÚLTIMOS 7 DÍAS
+// 3. CÁLCULO DE KM SEMANALES Y MAPA MUSCULAR (SOPORTA EJERCICIOS PERSONALIZADOS)
 // ============================================================================
 function isBlockRunning(h) {
   if (typeof h.isRun === 'boolean') return h.isRun;
@@ -1081,7 +1166,7 @@ function getWorkoutRunKm(w) {
   return (w.hyrox || []).reduce((sum, h) => {
     if (!isBlockRunning(h)) return sum;
     let d = parseFloat(h.dist) || 0;
-    if (d > 50) d = d / 1000; // compatibilidad por si se introdujo en metros
+    if (d > 50) d = d / 1000;
     return sum + d;
   }, 0);
 }
@@ -1107,6 +1192,7 @@ function computeLast7DaysMuscleLoad(refDateStr) {
   const sources = { cuadriceps:[], isquios:[], gluteos:[], gemelos:[], core:[], espalda:[], lumbar:[], hombros:[], pecho:[], brazos:[] };
 
   const addPts = (m, pts, label) => {
+    if (!MUSCLE_INFO[m]) return;
     scores[m] = (scores[m] || 0) + pts;
     if (!sources[m].includes(label)) sources[m].push(label);
   };
@@ -1117,32 +1203,39 @@ function computeLast7DaysMuscleLoad(refDateStr) {
       (w.strength || []).forEach(ex => {
         const doneSets = ex.sets.filter(s => s.done !== false).length;
         if (doneSets === 0) return;
-        const n = ex.name.toLowerCase();
         const mult = doneSets >= 3 ? 2 : 1;
+
+        // 1) Si el ejercicio tiene un músculo explícito asignado (incluye todos los personalizados)
+        if (ex.muscle && MUSCLE_INFO[ex.muscle]) {
+          addPts(ex.muscle, 2 * mult, ex.name);
+        }
+
+        // 2) Músculos secundarios conocidos para ejercicios compuestos estándar
+        const n = ex.name.toLowerCase();
         if (n.includes('sentadilla') || n.includes('búlgara') || n.includes('lunges')) {
-          addPts('cuadriceps', 2 * mult, ex.name);
+          if (!ex.muscle) addPts('cuadriceps', 2 * mult, ex.name);
           addPts('gluteos', 2 * mult, ex.name);
           addPts('core', 1, ex.name);
         } else if (n.includes('rumano') || n.includes('rdl') || n.includes('muerto')) {
-          addPts('isquios', 2 * mult, ex.name);
+          if (!ex.muscle) addPts('isquios', 2 * mult, ex.name);
           addPts('gluteos', 2 * mult, ex.name);
           addPts('lumbar', 2, ex.name);
           addPts('brazos', 1, ex.name);
         } else if (n.includes('militar') || n.includes('wall ball') || n.includes('thruster')) {
-          addPts('hombros', 2 * mult, ex.name);
-          addPts('cuadriceps', n.includes('militar') ? 0 : 2, ex.name);
-          addPts('gluteos', n.includes('militar') ? 0 : 1, ex.name);
+          if (!ex.muscle) addPts('hombros', 2 * mult, ex.name);
+          if (!n.includes('militar') && ex.muscle !== 'cuadriceps') addPts('cuadriceps', 2, ex.name);
+          if (!n.includes('militar')) addPts('gluteos', 1, ex.name);
           addPts('core', 1, ex.name);
         } else if (n.includes('banca')) {
-          addPts('pecho', 2 * mult, ex.name);
+          if (!ex.muscle) addPts('pecho', 2 * mult, ex.name);
           addPts('hombros', 1, ex.name);
           addPts('brazos', 1, ex.name);
         } else if (n.includes('gemelo') || n.includes('talón') || n.includes('drops')) {
-          addPts('gemelos', 2 * mult, ex.name);
+          if (!ex.muscle) addPts('gemelos', 2 * mult, ex.name);
         } else if (n.includes('pallof') || n.includes('dead bug') || n.includes('plancha')) {
-          addPts('core', 2 * mult, ex.name);
+          if (!ex.muscle) addPts('core', 2 * mult, ex.name);
         } else if (n.includes('remo')) {
-          addPts('espalda', 2 * mult, ex.name);
+          if (!ex.muscle) addPts('espalda', 2 * mult, ex.name);
           addPts('brazos', 1, ex.name);
           addPts('lumbar', 1, ex.name);
         }
@@ -1150,43 +1243,49 @@ function computeLast7DaysMuscleLoad(refDateStr) {
 
       (w.hyrox || []).forEach(h => {
         const n = h.name.toLowerCase();
+
+        // Si el bloque o ejercicio personalizado tiene músculo explícito
+        if (h.muscle && MUSCLE_INFO[h.muscle]) {
+          addPts(h.muscle, 3, h.name);
+        }
+
         if (isBlockRunning(h)) {
-          addPts('gemelos', 2, h.name);
+          if (h.muscle !== 'gemelos') addPts('gemelos', 2, h.name);
           addPts('cuadriceps', 1, h.name);
           addPts('isquios', 1, h.name);
           addPts('gluteos', 1, h.name);
           addPts('core', 1, h.name);
         } else if (n.includes('push')) {
-          addPts('cuadriceps', 3, h.name);
+          if (h.muscle !== 'cuadriceps') addPts('cuadriceps', 3, h.name);
           addPts('gemelos', 3, h.name);
           addPts('gluteos', 2, h.name);
           addPts('hombros', 1, h.name);
           addPts('core', 1, h.name);
         } else if (n.includes('pull')) {
-          addPts('espalda', 3, h.name);
+          if (h.muscle !== 'espalda') addPts('espalda', 3, h.name);
           addPts('brazos', 3, h.name);
           addPts('isquios', 2, h.name);
           addPts('lumbar', 2, h.name);
           addPts('gluteos', 2, h.name);
         } else if (n.includes('skierg') || n.includes('row')) {
-          addPts('espalda', 2, h.name);
+          if (h.muscle !== 'espalda') addPts('espalda', 2, h.name);
           addPts('core', 2, h.name);
           addPts('brazos', 1, h.name);
           if (n.includes('row')) addPts('isquios', 1, h.name);
         } else if (n.includes('farmers')) {
           addPts('espalda', 2, h.name);
-          addPts('brazos', 3, h.name);
+          if (h.muscle !== 'brazos') addPts('brazos', 3, h.name);
           addPts('core', 2, h.name);
           addPts('gemelos', 1, h.name);
         } else if (n.includes('burpee')) {
-          addPts('pecho', 2, h.name);
+          if (h.muscle !== 'pecho') addPts('pecho', 2, h.name);
           addPts('hombros', 2, h.name);
           addPts('cuadriceps', 2, h.name);
           addPts('gemelos', 2, h.name);
           addPts('core', 1, h.name);
         } else if (n.includes('lunges')) {
           addPts('cuadriceps', 3, h.name);
-          addPts('gluteos', 3, h.name);
+          if (h.muscle !== 'gluteos') addPts('gluteos', 3, h.name);
           addPts('gemelos', 2, h.name);
           addPts('lumbar', 1, h.name);
         }
@@ -1198,9 +1297,9 @@ function computeLast7DaysMuscleLoad(refDateStr) {
 
 function getHeatColor(pts) {
   if (pts <= 0) return '#1E293B';
-  if (pts <= 2) return 'rgba(245, 158, 11, 0.65)'; // Ámbar
-  if (pts <= 5) return 'rgba(163, 230, 53, 0.82)'; // Lima óptimo
-  return 'rgba(252, 76, 2, 0.92)';                // Naranja Strava alto
+  if (pts <= 2) return 'rgba(245, 158, 11, 0.65)';
+  if (pts <= 5) return 'rgba(163, 230, 53, 0.82)';
+  return 'rgba(252, 76, 2, 0.92)';
 }
 
 // ============================================================================
@@ -1263,7 +1362,6 @@ function renderHoy() {
   document.getElementById('mobile-countdown').textContent = `${daysLeft}d`;
   document.getElementById('mobile-header-sub').textContent = `Sem ${String(weekNum).padStart(2,'0')} · Málaga Sub-1:40`;
 
-  // Weekly KM widget
   const doneKm = getLoggedKmForWeek(weekNum);
   const pctKm = Math.min(100, Math.round((doneKm / cfg.km) * 100));
   const remKm = Math.max(0, cfg.km - doneKm);
@@ -1383,7 +1481,7 @@ function addWater(delta) {
 }
 
 // ============================================================================
-// 5. ENTRENO ACTIVO USER-FRIENDLY + PERSISTENCIA EN PANTALLA BLOQUEADA
+// 5. ENTRENO ACTIVO (INICIO MANUAL + EJERCICIOS PERSONALIZADOS)
 // ============================================================================
 function startTodayWorkout(customDateStr = null) {
   const targetDate = customDateStr || state.selectedDateStr;
@@ -1393,22 +1491,41 @@ function startTodayWorkout(customDateStr = null) {
   state.loggerMode = 'guided';
   saveState();
   switchTab('logger');
-  showToast('Entreno iniciado · Guardado automático activo');
+  showToast('Entreno iniciado · Cronómetro en marcha');
 }
 
-function ensureActiveDraft() {
-  if (!state.activeDraft) {
-    const info = getWeekAndDayInfo(state.selectedDateStr);
-    const code = (info.sessCode === 'REST' || info.sessCode === 'OPT_F') ? 'D' : (info.sessCode === 'E_BRICK' ? 'E' : info.sessCode);
-    loadTemplate(code, state.selectedDateStr, false);
-  }
+function startTemplateWorkout(code) {
+  loadTemplate(code, state.selectedDateStr, true);
+  state.loggerMode = 'guided';
+  saveState();
+  renderLogger();
+  showToast(`Sesión ${code} iniciada`);
+}
+
+function startCustomEmptyWorkout() {
+  loadTemplate('EMPTY', state.selectedDateStr, true);
+  state.loggerMode = 'list';
+  saveState();
+  renderLogger();
+  showToast('Entreno libre iniciado · Añade tus ejercicios');
+}
+
+function discardActiveWorkout() {
+  if (!confirm('¿Descartar el entreno actual sin guardar?')) return;
+  state.activeDraft = null;
+  stopRestTimer();
+  if (lockMediaActive) toggleLockScreenMedia();
+  saveState();
+  renderLogger();
+  updateActiveBanner();
+  showToast('Entreno descartado');
 }
 
 function loadTemplate(code, customDate, resetTimer = true) {
   const dtStr = customDate || (state.activeDraft ? state.activeDraft.date : state.selectedDateStr);
   if (code === 'EMPTY') {
     state.activeDraft = {
-      title: 'Entreno Libre HYROX',
+      title: 'Entreno Personalizado HYROX',
       date: dtStr,
       rpe: 7,
       notes: '',
@@ -1438,7 +1555,76 @@ function loadTemplate(code, customDate, resetTimer = true) {
     };
   }
   saveState();
+  if (state.activeTab === 'logger') renderLogger();
+}
+
+function populateExerciseDropdowns() {
+  const sSel = document.getElementById('add-strength-select');
+  const hSel = document.getElementById('add-hyrox-select');
+  if (!sSel || !hSel) return;
+
+  const customStrength = state.customExercises.filter(c => c.type === 'strength');
+  const customHyrox = state.customExercises.filter(c => c.type !== 'strength');
+
+  sSel.innerHTML = [
+    ...customStrength.map(c => `<option value="${c.name}" data-muscle="${c.muscle}" data-kg="${c.defaultKg || 20}">★ ${c.name} (${MUSCLE_INFO[c.muscle]?.label || c.muscle})</option>`),
+    ...DEFAULT_STRENGTH_CATALOG.map(c => `<option value="${c.name}" data-muscle="${c.muscle}" data-kg="${c.defaultKg}">${c.name}</option>`)
+  ].join('');
+
+  hSel.innerHTML = [
+    ...customHyrox.map(c => `<option value="${c.name}" data-muscle="${c.muscle}" data-isrun="${c.type === 'run' ? '1' : '0'}">★ ${c.name} (${MUSCLE_INFO[c.muscle]?.label || c.muscle})</option>`),
+    ...DEFAULT_HYROX_CATALOG.map(c => `<option value="${c.name}" data-muscle="${c.muscle}" data-isrun="${c.isRun ? '1' : '0'}">${c.name}</option>`)
+  ].join('');
+}
+
+function addCustomExercise() {
+  const nameInput = document.getElementById('custom-ex-name');
+  const name = nameInput.value.trim();
+  const muscle = document.getElementById('custom-ex-muscle').value;
+  const type = document.getElementById('custom-ex-type').value;
+
+  if (!name) {
+    showToast('Escribe el nombre del ejercicio primero');
+    nameInput.focus();
+    return;
+  }
+
+  // Guardar en biblioteca personalizada si no existe aún
+  const exists = state.customExercises.some(c => c.name.toLowerCase() === name.toLowerCase());
+  if (!exists) {
+    state.customExercises.unshift({ name, muscle, type, defaultKg: 20 });
+  }
+
+  if (type === 'strength') {
+    state.activeDraft.strength.push({
+      name,
+      muscle,
+      cue: `Personalizado · Músculo: ${MUSCLE_INFO[muscle]?.label || muscle}`,
+      restSec: 90,
+      sets: [
+        { kg: 20, reps: 10, rpe: 8, done: false },
+        { kg: 20, reps: 10, rpe: 8, done: false },
+        { kg: 20, reps: 10, rpe: 8, done: false }
+      ]
+    });
+  } else {
+    const isRun = type === 'run';
+    state.activeDraft.hyrox.push({
+      name,
+      muscle,
+      isRun,
+      dist: isRun ? 3.0 : 0.1,
+      time: isRun ? '18:00' : '04:00',
+      hr: 155,
+      notes: `Personalizado · ${MUSCLE_INFO[muscle]?.label || muscle}`,
+      done: false
+    });
+  }
+
+  nameInput.value = '';
+  saveState();
   renderLogger();
+  showToast(`"${name}" añadido (${MUSCLE_INFO[muscle]?.label})`);
 }
 
 function setLoggerMode(mode) {
@@ -1449,6 +1635,7 @@ function setLoggerMode(mode) {
 
 function getGuidedSteps() {
   const d = state.activeDraft;
+  if (!d) return [];
   const steps = [];
   d.hyrox.forEach((h, idx) => steps.push({ kind: 'hyrox', idx, item: h }));
   d.strength.forEach((s, idx) => steps.push({ kind: 'strength', idx, item: s }));
@@ -1456,9 +1643,30 @@ function getGuidedSteps() {
 }
 
 function renderLogger() {
-  ensureActiveDraft();
-  const d = state.activeDraft;
+  const idleView = document.getElementById('logger-idle-view');
+  const activeView = document.getElementById('logger-active-view');
 
+  // Si NO hay ningún entreno iniciado, mostramos vista previa de inicio manual
+  if (!state.activeDraft) {
+    idleView.classList.remove('hidden');
+    activeView.classList.add('hidden');
+
+    const info = getWeekAndDayInfo(state.selectedDateStr);
+    const meta = SESSION_META[info.sessCode] || SESSION_META.REST;
+    document.getElementById('idle-session-badge').textContent = `${formatDateES(info.dt)} · Sem ${info.weekNum}`;
+    document.getElementById('idle-session-title').textContent = info.sessCode === 'REST'
+      ? 'Hoy toca Descanso (o Entreno Libre opcional)'
+      : `Sesión ${meta.code} · ${meta.badge} (${meta.dur})`;
+    updateActiveBanner();
+    lucide.createIcons();
+    return;
+  }
+
+  idleView.classList.add('hidden');
+  activeView.classList.remove('hidden');
+  populateExerciseDropdowns();
+
+  const d = state.activeDraft;
   document.getElementById('logger-header-title').textContent = d.title;
   document.getElementById('log-title').value = d.title;
   document.getElementById('log-date').value = d.date;
@@ -1474,6 +1682,7 @@ function renderLogger() {
   if (isGuided) renderGuidedCard();
   else renderListMode();
 
+  tickTimers();
   updateMediaSessionMetadata();
   updateActiveBanner();
   lucide.createIcons();
@@ -1486,7 +1695,7 @@ function renderGuidedCard() {
 
   if (steps.length === 0) {
     card.innerHTML = `<div class="text-center py-8 space-y-3">
-      <p class="text-sm text-slate-300">Sesión vacía. Cambia a <strong>Vista Lista</strong> o carga una plantilla para empezar.</p>
+      <p class="text-sm text-slate-300">Sesión vacía. Cambia a <strong>Vista Lista</strong> para añadir ejercicios personalizados o estándar.</p>
       <button onclick="setLoggerMode('list')" class="px-4 py-2 rounded-xl bg-strava text-white font-bold text-xs">Ir a Vista Lista</button>
     </div>`;
     return;
@@ -1504,6 +1713,7 @@ function renderGuidedCard() {
     const activeIdx = nextSetIdx >= 0 ? nextSetIdx : ex.sets.length - 1;
     const curSet = ex.sets[activeIdx];
     const allDone = nextSetIdx === -1;
+    const mBadge = ex.muscle && MUSCLE_INFO[ex.muscle] ? `<span class="px-2 py-0.5 rounded bg-lime/15 text-lime font-mono text-[10px]">${MUSCLE_INFO[ex.muscle].label}</span>` : '';
 
     card.innerHTML = `
       <div class="space-y-4">
@@ -1516,11 +1726,13 @@ function renderGuidedCard() {
         </div>
 
         <div>
-          <h3 class="text-xl font-extrabold text-white">${ex.name}</h3>
+          <div class="flex items-center gap-2 flex-wrap">
+            <h3 class="text-xl font-extrabold text-white">${ex.name}</h3>
+            ${mBadge}
+          </div>
           <p class="text-xs text-electric mt-1">${ex.cue || 'Técnica controlada · Descanso según objetivo'}</p>
         </div>
 
-        <!-- Set Pills -->
         <div class="flex flex-wrap gap-2">
           ${ex.sets.map((s, i) => `
             <button onclick="toggleSetDone(${step.idx}, ${i})" class="px-3 py-1.5 rounded-xl font-mono text-xs font-bold border transition ${
@@ -1529,7 +1741,6 @@ function renderGuidedCard() {
           `).join('')}
         </div>
 
-        <!-- Big Touch Steppers for Active Set -->
         <div class="grid grid-cols-2 gap-3 pt-1">
           <div class="p-3 rounded-2xl bg-obsidian border border-stroke text-center space-y-2">
             <span class="text-[11px] font-bold uppercase text-slate-400 block">Peso (kg) · Serie #${activeIdx + 1}</span>
@@ -1556,6 +1767,7 @@ function renderGuidedCard() {
     `;
   } else {
     const h = step.item;
+    const mBadge = h.muscle && MUSCLE_INFO[h.muscle] ? `<span class="px-2 py-0.5 rounded bg-electric/15 text-electric font-mono text-[10px]">${MUSCLE_INFO[h.muscle].label}</span>` : '';
     card.innerHTML = `
       <div class="space-y-4">
         <div class="flex items-center justify-between text-xs">
@@ -1567,7 +1779,10 @@ function renderGuidedCard() {
         </div>
 
         <div>
-          <h3 class="text-xl font-extrabold text-white">${h.name}</h3>
+          <div class="flex items-center gap-2 flex-wrap">
+            <h3 class="text-xl font-extrabold text-white">${h.name}</h3>
+            ${mBadge}
+          </div>
           <p class="text-xs text-slate-300 mt-1">${h.notes || 'Controla pulso Karvonen y respiración rítmica'}</p>
         </div>
 
@@ -1630,12 +1845,17 @@ function renderListMode() {
   const d = state.activeDraft;
   const sCont = document.getElementById('logger-strength-list');
   if (d.strength.length === 0) {
-    sCont.innerHTML = `<div class="p-4 rounded-2xl border border-dashed border-stroke text-center text-xs text-slate-500">Sin ejercicios de fuerza añadidos.</div>`;
+    sCont.innerHTML = `<div class="p-4 rounded-2xl border border-dashed border-stroke text-center text-xs text-slate-500">Sin ejercicios de fuerza añadidos. Usa el creador superior o el desplegable.</div>`;
   } else {
     sCont.innerHTML = d.strength.map((ex, exIdx) => `
       <div class="glass-card rounded-2xl p-4 space-y-3">
-        <div class="flex items-center justify-between">
-          <h4 class="font-bold text-sm text-strava">${ex.name}</h4>
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2 flex-wrap">
+            <h4 class="font-bold text-sm text-strava">${ex.name}</h4>
+            <select onchange="updateStrengthMuscle(${exIdx}, this.value)" class="bg-obsidian border border-stroke rounded-lg px-2 py-0.5 text-[10px] font-mono text-lime">
+              ${Object.entries(MUSCLE_INFO).map(([k, v]) => `<option value="${k}" ${ex.muscle === k ? 'selected' : ''}>${v.label}</option>`).join('')}
+            </select>
+          </div>
           <button onclick="removeStrengthEx(${exIdx})" class="text-slate-500 hover:text-red-400 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
         </div>
         <div class="grid grid-cols-12 gap-2 text-[10px] font-bold uppercase text-slate-400 px-1">
@@ -1666,8 +1886,13 @@ function renderListMode() {
   } else {
     hCont.innerHTML = d.hyrox.map((hb, idx) => `
       <div class="glass-card rounded-2xl p-4 space-y-3">
-        <div class="flex items-center justify-between">
-          <h4 class="font-bold text-sm text-electric">${hb.name} <span class="text-[10px] font-mono text-slate-400">${isBlockRunning(hb) ? '(Suma Km)' : '(Estación)'}</span></h4>
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2 flex-wrap">
+            <h4 class="font-bold text-sm text-electric">${hb.name}</h4>
+            <select onchange="updateHyroxMuscle(${idx}, this.value)" class="bg-obsidian border border-stroke rounded-lg px-2 py-0.5 text-[10px] font-mono text-electric">
+              ${Object.entries(MUSCLE_INFO).map(([k, v]) => `<option value="${k}" ${hb.muscle === k ? 'selected' : ''}>${v.label}</option>`).join('')}
+            </select>
+          </div>
           <button onclick="removeHyroxBlock(${idx})" class="text-slate-500 hover:text-red-400 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
         </div>
         <div class="grid grid-cols-3 gap-2.5">
@@ -1681,6 +1906,16 @@ function renderListMode() {
   }
 }
 
+function updateStrengthMuscle(exIdx, muscle) {
+  state.activeDraft.strength[exIdx].muscle = muscle;
+  saveState();
+}
+
+function updateHyroxMuscle(idx, muscle) {
+  state.activeDraft.hyrox[idx].muscle = muscle;
+  saveState();
+}
+
 function syncDraftMeta() {
   if (!state.activeDraft) return;
   state.activeDraft.title = document.getElementById('log-title').value;
@@ -1692,31 +1927,36 @@ function syncDraftMeta() {
 }
 
 function addStrengthExercise() {
-  const name = document.getElementById('add-strength-select').value;
-  let kg = 40;
-  if (name.includes('Sentadilla')) kg = 60;
-  else if (name.includes('Rumano')) kg = 75;
-  else if (name.includes('Banca')) kg = 50;
-  else if (name.includes('Thrusters')) kg = 7;
-  else if (name.includes('Wall Balls')) kg = 6;
-  else if (name.includes('Drops')) kg = 0;
+  const sel = document.getElementById('add-strength-select');
+  const opt = sel.options[sel.selectedIndex];
+  const name = sel.value;
+  const muscle = opt.dataset.muscle || 'cuadriceps';
+  const kg = parseFloat(opt.dataset.kg) || 20;
 
-  state.activeDraft.strength.push({ name, cue: 'Técnica controlada', restSec: 90, sets: [{ kg, reps: 8, rpe: 8, done: false }, { kg, reps: 8, rpe: 8, done: false }] });
+  state.activeDraft.strength.push({
+    name,
+    muscle,
+    cue: 'Técnica controlada',
+    restSec: 90,
+    sets: [{ kg, reps: 8, rpe: 8, done: false }, { kg, reps: 8, rpe: 8, done: false }]
+  });
   saveState();
   renderLogger();
 }
 
 function addHyroxBlock() {
   const sel = document.getElementById('add-hyrox-select');
+  const opt = sel.options[sel.selectedIndex];
   const name = sel.value;
-  const isRun = sel.options[sel.selectedIndex].dataset.isrun === '1';
+  const muscle = opt.dataset.muscle || 'gemelos';
+  const isRun = opt.dataset.isrun === '1';
   let dist = 1.0, time = '05:30', hr = 155;
   if (name.includes('Z2')) { dist = 6.0; time = '40:00'; hr = 142; }
   else if (name.includes('Push')) { dist = 0.05; time = '03:50'; hr = 172; }
   else if (name.includes('Pull')) { dist = 0.05; time = '05:20'; hr = 168; }
   else if (name.includes('Farmers')) { dist = 0.2; time = '02:05'; hr = 165; }
   else if (name.includes('Wall Balls')) { dist = 0.1; time = '07:45'; hr = 176; }
-  state.activeDraft.hyrox.push({ name, isRun, dist, time, hr, notes: '', done: false });
+  state.activeDraft.hyrox.push({ name, muscle, isRun, dist, time, hr, notes: '', done: false });
   saveState();
   renderLogger();
 }
@@ -1741,8 +1981,8 @@ function removeStrengthEx(exIdx) { state.activeDraft.strength.splice(exIdx, 1); 
 function updateHyrox(idx, field, val) { state.activeDraft.hyrox[idx][field] = (field === 'notes' || field === 'time') ? val : (parseFloat(val) || 0); saveState(); }
 function removeHyroxBlock(idx) { state.activeDraft.hyrox.splice(idx, 1); saveState(); renderLogger(); }
 
-// Timers reales basados en Date.now() (no se detienen si se apaga la pantalla!)
 function startRestTimer(sec) {
+  if (!state.activeDraft) return;
   state.activeDraft.restEndsAt = Date.now() + sec * 1000;
   saveState();
   tickTimers();
@@ -1773,9 +2013,17 @@ function playBeep() {
 }
 
 function tickTimers() {
-  if (!state.activeDraft) return;
+  const pill = document.getElementById('mobile-timer-pill');
+  if (!state.activeDraft) {
+    if (pill) pill.classList.add('hidden');
+    document.title = 'HYROX PRO COACH · Ruta Málaga 2027';
+    updateActiveBanner();
+    return;
+  }
+
   const elapsedSec = Math.max(0, Math.floor((Date.now() - state.activeDraft.startedAt) / 1000));
-  document.getElementById('elapsed-timer-display').textContent = formatMMSS(elapsedSec);
+  const elDisp = document.getElementById('elapsed-timer-display');
+  if (elDisp) elDisp.textContent = formatMMSS(elapsedSec);
 
   let restLeft = 0;
   if (state.activeDraft.restEndsAt) {
@@ -1790,8 +2038,9 @@ function tickTimers() {
   }
 
   const rText = formatMMSS(restLeft);
-  document.getElementById('rest-timer-display').textContent = rText;
-  const pill = document.getElementById('mobile-timer-pill');
+  const rDisp = document.getElementById('rest-timer-display');
+  if (rDisp) rDisp.textContent = rText;
+
   if (restLeft > 0) {
     pill.textContent = `Desc ${rText}`;
     pill.classList.remove('hidden');
@@ -1817,7 +2066,6 @@ function updateActiveBanner() {
   banner.classList.remove('hidden');
 }
 
-// Wake Lock & Media Session (Lock Screen Widget)
 async function toggleWakeLock() {
   const btn = document.getElementById('btn-wakelock');
   if (wakeLockSentinel) {
@@ -1851,7 +2099,6 @@ function toggleLockScreenMedia() {
   }
   try {
     if (!lockAudioEl) {
-      // Silencio WAV válido de 1s en base64 para habilitar MediaSession en pantalla bloqueada
       const silentWav = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
       lockAudioEl = new Audio(silentWav);
       lockAudioEl.loop = true;
@@ -1897,7 +2144,12 @@ function finishAndSaveWorkout() {
     return;
   }
 
+  // Asegurar que si el usuario pulsó Finalizar sin marcar ticks, sus series con peso/reps cuenten en el mapa de calor
   d.strength.forEach(ex => {
+    const anyDone = ex.sets.some(s => s.done);
+    if (!anyDone) {
+      ex.sets.forEach(s => { if (s.reps > 0) s.done = true; });
+    }
     ex.sets.forEach(st => {
       if (st.done && st.kg > 0 && st.reps > 0) {
         const est = calc1RM(st.kg, st.reps);
@@ -1927,7 +2179,7 @@ function finishAndSaveWorkout() {
   if (lockMediaActive) toggleLockScreenMedia();
   saveState();
   renderHoy();
-  showToast('Entrenamiento guardado en tu historial y calendario');
+  showToast('Entreno guardado · Mapa de calor muscular actualizado');
   switchTab('progreso');
 }
 
@@ -2099,7 +2351,7 @@ function renderMonthlyCalendar() {
   document.getElementById('cal-month-label').textContent = `${MONTH_NAMES[m]} ${y}`;
 
   const firstDt = new Date(y, m, 1);
-  const startOffset = (firstDt.getDay() + 6) % 7; // Lun=0
+  const startOffset = (firstDt.getDay() + 6) % 7;
   const daysInMonth = new Date(y, m + 1, 0).getDate();
   const realTodayISO = getLocalTodayISO();
 
@@ -2213,7 +2465,6 @@ function renderBodyHeatmap() {
     el.setAttribute('fill', getHeatColor(scores[m] || 0));
   });
 
-  // Auto-mostrar el músculo con mayor carga
   const topMuscle = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
   if (topMuscle && topMuscle[1] > 0) selectMuscle(topMuscle[0], scores, sources);
 }
